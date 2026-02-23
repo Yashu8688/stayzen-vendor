@@ -1,0 +1,79 @@
+/* Main Layout Styles - layout.css */
+.ly-wrapper {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+    background-color: var(--bg-main);
+}
+
+.ly-container {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+}
+
+.ly-content-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 32px 40px;
+}
+
+.ly-placeholder-card {
+    background: white;
+    border-radius: 16px;
+    padding: 40px;
+    text-align: center;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.ly-placeholder-card h2 {
+    color: var(--text-dark, #1f2937);
+    margin-bottom: 12px;
+}
+
+.ly-placeholder-card p {
+    color: var(--text-gray, #6b7280);
+}
+
+/* Sidebar Overlay */
+.ly-sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(15, 23, 42, 0.4);
+    backdrop-filter: blur(2px);
+    z-index: 1900;
+    animation: overlayFadeIn 0.3s ease-out;
+}
+
+@keyframes overlayFadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+/* Responsive Layout */
+@media (max-width: 900px) {
+    .ly-content-area {
+        padding: 24px;
+    }
+}
+
+@media (max-width: 768px) {
+    .ly-content-area {
+        padding: 16px;
+    }
+}

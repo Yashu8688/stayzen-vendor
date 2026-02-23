@@ -1,0 +1,30 @@
+# Build artifacts
+node_modules/
+dist/
+build/
+.next/
+.serverless/
+out/
+*.apk
+*.aab
+*.ipa
+
+# Mobile build artifacts
+stayzen_mobile/build/
+stayzen_mobile/android/app/build/
+stayzen_mobile/ios/Flutter/
+**/build/
+**/.dart_tool/
+
+# Environment variables
+.env*
+!.env.example
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Idea files
+.idea/
+.vscode/
+*.iml

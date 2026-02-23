@@ -1,0 +1,70 @@
+.alerts-page {
+    animation: fadeIn 0.4s ease-out;
+}
+
+.alerts-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.alert-card {
+    background-color: var(--bg-card);
+    padding: 1.5rem;
+    border-radius: 20px;
+    border: 1px solid var(--border-color);
+    position: relative;
+}
+
+.priority-high {
+    border-left: 6px solid var(--error);
+}
+
+.priority-medium {
+    border-left: 6px solid var(--warning);
+}
+
+.priority-low {
+    border-left: 6px solid var(--primary);
+}
+
+.alert-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    background-color: #f1f5f9;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    margin-bottom: 0.75rem;
+}
+
+.alert-msg {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--secondary);
+    margin-bottom: 1.5rem;
+}
+
+.alert-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.alert-date {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.resolve-btn {
+    padding: 8px 16px;
+    background-color: #f1f5f9;
+    border-radius: 10px;
+    font-weight: 700;
+    transition: var(--transition);
+}
+
+.resolve-btn:hover {
+    background-color: var(--success);
+    color: white;
+}

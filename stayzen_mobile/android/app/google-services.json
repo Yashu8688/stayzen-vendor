@@ -1,0 +1,39 @@
+{
+    "project_info": {
+        "project_number": "538053550578",
+        "project_id": "stayzen-dcc00",
+        "storage_bucket": "stayzen-dcc00.firebasestorage.app"
+    },
+    "client": [
+        {
+            "client_info": {
+                "mobilesdk_app_id": "1:538053550578:android:399c9523a29608bc804b6b",
+                "android_client_info": {
+                    "package_name": "com.stayzen.sagiam.stayzen_flutter_app"
+                }
+            },
+            "oauth_client": [
+                {
+                    "client_id": "538053550578-q7svuki4g65lo6rb99rve28snqk0h0cj.apps.googleusercontent.com",
+                    "client_type": 3
+                }
+            ],
+            "api_key": [
+                {
+                    "current_key": "AIzaSyC02f3xxp19JoZv7qR-hH_iyprnu9rPfKI"
+                }
+            ],
+            "services": {
+                "appinvite_service": {
+                    "other_platform_oauth_client": [
+                        {
+                            "client_id": "538053550578-q7svuki4g65lo6rb99rve28snqk0h0cj.apps.googleusercontent.com",
+                            "client_type": 3
+                        }
+                    ]
+                }
+            }
+        }
+    ],
+    "configuration_version": "1"
+}

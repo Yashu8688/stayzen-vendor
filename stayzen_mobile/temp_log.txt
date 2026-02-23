@@ -1,0 +1,200 @@
+﻿[        ]   Caching has been disabled for the task
+[        ] Skipping task ':url_launcher_android:generateReleaseLintVitalModel' as it is up-to-date.
+[        ] work action resolve generateReleaseLintVitalModel (project :url_launcher_android) (Thread[#96,Execution worker Thread 3,5,main]) started.
+[        ] work action resolve generateReleaseLintVitalModel (project :url_launcher_android) (Thread[#96,Execution worker Thread 3,5,main]) started.
+[        ] Resolve mutations for :app:lintVitalReportRelease (Thread[#96,Execution worker Thread 3,5,main]) started.
+[        ] :app:lintVitalReportRelease (Thread[#96,Execution worker Thread 3,5,main]) started.
+[        ] > Task :app:lintVitalReportRelease UP-TO-DATE
+[        ] file or directory 'C:\Users\yashwanth\AppData\Local\Pub\Cache\hosted\pub.dev\razorpay_flutter-1.4.0\android\libs', not found
+[        ] file or directory 'C:\Users\yashwanth\AppData\Local\Pub\Cache\hosted\pub.dev\razorpay_flutter-1.4.0\android\libs', not found
+[        ] file or directory 'C:\Users\yashwanth\AppData\Local\Pub\Cache\hosted\pub.dev\razorpay_flutter-1.4.0\android\libs', not found
+[        ] Caching disabled for task ':app:lintVitalReportRelease' because:
+[        ]   Build cache is disabled
+[        ]   Caching has been disabled for the task
+[        ] Skipping task ':app:lintVitalReportRelease' as it is up-to-date.
+[        ] Resolve mutations for :app:lintVitalRelease (Thread[#96,Execution worker Thread 3,5,main]) started.
+[        ] :app:lintVitalRelease (Thread[#96,Execution worker Thread 3,5,main]) started.
+[ +155 ms] > Task :app:lintVitalRelease
+[        ] Caching disabled for task ':app:lintVitalRelease' because:
+[        ]   Build cache is disabled
+[        ]   Caching has been disabled for the task
+[        ] Task ':app:lintVitalRelease' is not up-to-date because:
+[        ]   Task.upToDateWhen is false.
+[        ] Resolve mutations for :app:parseReleaseIntegrityConfig (Thread[#96,Execution worker Thread 3,5,main]) started.
+[        ] :app:parseReleaseIntegrityConfig (Thread[#96,Execution worker Thread 3,5,main]) started.
+[        ] > Task :app:parseReleaseIntegrityConfig UP-TO-DATE
+[        ] Caching disabled for task ':app:parseReleaseIntegrityConfig' because:
+[        ]   Build cache is disabled
+[        ] Skipping task ':app:parseReleaseIntegrityConfig' as it is up-to-date.
+[        ] Resolve mutations for :app:packageReleaseBundle (Thread[#96,Execution worker Thread 3,5,main]) started.
+[        ] :app:packageReleaseBundle (Thread[#96,Execution worker Thread 3,5,main]) started.
+[        ] > Task :app:packageReleaseBundle UP-TO-DATE
+[        ] Caching disabled for task ':app:packageReleaseBundle' because:
+[        ]   Build cache is disabled
+[        ]   Caching has been disabled for the task
+[        ] Skipping task ':app:packageReleaseBundle' as it is up-to-date.
+[        ] Resolve mutations for :app:validateSigningRelease (Thread[#96,Execution worker Thread 3,5,main]) started.
+[        ] :app:validateSigningRelease (Thread[#96,Execution worker Thread 3,5,main]) started.
+[        ] > Task :app:validateSigningRelease UP-TO-DATE
+[        ] Caching disabled for task ':app:validateSigningRelease' because:
+[        ]   Build cache is disabled
+[        ]   Caching has been disabled for the task
+[        ] Skipping task ':app:validateSigningRelease' as it is up-to-date.
+[        ] Resolve mutations for :app:signReleaseBundle (Thread[#96,Execution worker Thread 3,5,main]) started.
+[        ] :app:signReleaseBundle (Thread[#96,Execution worker Thread 3,5,main]) started.
+[  +99 ms] > Task :app:signReleaseBundle UP-TO-DATE
+[        ] Caching disabled for task ':app:signReleaseBundle' because:
+[        ]   Build cache is disabled
+[        ]   Caching has been disabled for the task
+[        ] Skipping task ':app:signReleaseBundle' as it is up-to-date.
+[        ] Resolve mutations for :app:produceReleaseBundleIdeListingFile (Thread[#96,Execution worker Thread 3,5,main]) started.
+[        ] :app:produceReleaseBundleIdeListingFile (Thread[#96,Execution worker Thread 3,5,main]) started.
+[   +1 ms] > Task :app:produceReleaseBundleIdeListingFile UP-TO-DATE
+[        ] Caching disabled for task ':app:produceReleaseBundleIdeListingFile' because:
+[        ]   Build cache is disabled
+[        ]   Fast task
+[        ] Skipping task ':app:produceReleaseBundleIdeListingFile' as it is up-to-date.
+[   +1 ms] Resolve mutations for :app:createReleaseBundleListingFileRedirect (Thread[#96,Execution worker Thread 3,5,main]) started.
+[   +1 ms] :app:createReleaseBundleListingFileRedirect (Thread[#96,Execution worker Thread 3,5,main]) started.
+[        ] > Task :app:createReleaseBundleListingFileRedirect UP-TO-DATE
+[        ] Caching disabled for task ':app:createReleaseBundleListingFileRedirect' because:
+[        ]   Build cache is disabled
+[        ]   Caching has been disabled for the task
+[        ] Skipping task ':app:createReleaseBundleListingFileRedirect' as it is up-to-date.
+[        ] Resolve mutations for :app:bundleRelease (Thread[#96,Execution worker Thread 3,5,main]) started.
+[        ] :app:bundleRelease (Thread[#96,Execution worker Thread 3,5,main]) started.
+[        ] > Task :app:bundleRelease UP-TO-DATE
+[        ] Skipping task ':app:bundleRelease' as it has no actions.
+[+3287 ms] Build e54521c0-3e71-4077-9234-62a36e4e4f58 is closed
+[        ] [Incubating] Problems report is available at: file:///C:/Users/yashwanth/Desktop/stayzen-new/stayzen_mobile/android/build/reports/problems/problems-report.html
+[        ] Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+[        ] You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+[        ] For more on this, please refer to https://docs.gradle.org/8.14/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+[  +89 ms] BUILD SUCCESSFUL in 1m 55s
+[        ] 336 actionable tasks: 10 executed, 326 up-to-date
+[ +106 ms] Watched directory hierarchies: [C:\Users\yashwanth\Desktop\stayzen-new\flutter_sdk\packages\flutter_tools\gradle, C:\Users\yashwanth\Desktop\stayzen-new\stayzen_mobile\android]
+[ +806 ms] Running Gradle task 'bundleRelease'... (completed in 117.0s)
+[ +169 ms] LocalFile: 'C:\Users\yashwanth\Desktop\stayzen-new\stayzen_mobile\android\build.gradle.kts' doesn't provide an AGP version. Checking settings.
+[   +3 ms] LocalFile: 'C:\Users\yashwanth\Desktop\stayzen-new\stayzen_mobile\android\settings.gradle.kts' provides AGP version: 8.11.1
+[  +67 ms] "flutter appbundle" took 1,18,211ms.
+[   +1 ms] Running 1 shutdown hook
+..\flutter_sdk\bin\flutter.b
+at : [ +492 ms] Gradle 
+build failed to produce an 
+.aab file. It's likely that 
+this file was generated 
+under C:\Users\yashwanth\Des
+ktop\stayzen-new\stayzen_mob
+ile\build, but the tool 
+couldn't find it.
+At line:1 char:109
++ ... tWriteTime; ..\flutter
+_sdk\bin\flutter.bat build 
+appbundle --release  ...
++                 ~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          
+    : NotSpecified: ([ +49  
+  2 ms] Grad...uldn't fin   
+ d it.:String) [], Remot    
+eException
+    + FullyQualifiedErrorId 
+    : NativeCommandError
+ 
+[   +8 ms] 
+           #0      
+throwToolExit (package:flutt
+er_tools/src/base/common.dar
+t:34:3)
+           #1      _exitWith
+ExpectedFileNotFound (packag
+e:flutter_tools/src/android/
+gradle.dart:1235:3)
+           #2      
+findBundleFile (package:flut
+ter_tools/src/android/gradle
+.dart:1162:5)
+           #3      AndroidGr
+adleBuilder.buildGradleApp (
+package:flutter_tools/src/an
+droid/gradle.dart:599:31)
+           <asynchronous 
+suspension>
+           #4      AndroidGr
+adleBuilder.buildAab (packag
+e:flutter_tools/src/android/
+gradle.dart:255:5)
+           <asynchronous 
+suspension>
+           #5      BuildAppB
+undleCommand.runCommand (pac
+kage:flutter_tools/src/comma
+nds/build_appbundle.dart:168
+:5)
+           <asynchronous 
+suspension>
+           #6      FlutterCo
+mmand.run.<anonymous 
+closure> (package:flutter_to
+ols/src/runner/flutter_comma
+nd.dart:1559:27)
+           <asynchronous 
+suspension>
+           #7      
+AppContext.run.<anonymous 
+closure> (package:flutter_to
+ols/src/base/context.dart:15
+4:19)
+           <asynchronous 
+suspension>
+           #8      
+CommandRunner.runCommand (pa
+ckage:args/command_runner.da
+rt:212:13)
+           <asynchronous 
+suspension>
+           #9      FlutterCo
+mmandRunner.runCommand.<anon
+ymous closure> (package:flut
+ter_tools/src/runner/flutter
+_command_runner.dart:487:9)
+           <asynchronous 
+suspension>
+           #10     
+AppContext.run.<anonymous 
+closure> (package:flutter_to
+ols/src/base/context.dart:15
+4:19)
+           <asynchronous 
+suspension>
+           #11     FlutterCo
+mmandRunner.runCommand (pack
+age:flutter_tools/src/runner
+/flutter_command_runner.dart
+:422:5)
+           <asynchronous 
+suspension>
+           #12     
+run.<anonymous 
+closure>.<anonymous 
+closure> (package:flutter_to
+ols/runner.dart:104:11)
+           <asynchronous 
+suspension>
+           #13     
+AppContext.run.<anonymous 
+closure> (package:flutter_to
+ols/src/base/context.dart:15
+4:19)
+           <asynchronous 
+suspension>
+           #14     main (pac
+kage:flutter_tools/executabl
+e.dart:103:3)
+           <asynchronous 
+suspension>
+
+
+[   +7 ms] Shutdown hooks complete
+[ +290 ms] exiting with code 1

@@ -1,0 +1,14 @@
+{
+  "projects": {
+    "default": "stayzen-dcc00"
+  },
+  "targets": {
+    "stayzen-dcc00": {
+      "hosting": {
+        "users": [
+          "stayzen-dcc00"
+        ]
+      }
+    }
+  }
+}

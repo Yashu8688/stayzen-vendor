@@ -1,0 +1,237 @@
+.intel-help-view {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding-bottom: 60px;
+}
+
+.intel-help-header {
+    text-align: center;
+    margin-bottom: 60px;
+    padding-top: 40px;
+}
+
+.header-meta {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 24px;
+}
+
+.meta-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    background: #f1f8f7;
+    border: 1px solid rgba(26, 167, 156, 0.2);
+    border-radius: 20px;
+    color: var(--primary);
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.intel-help-title {
+    font-size: 48px;
+    font-weight: 950;
+    color: #0f172a;
+    letter-spacing: -2px;
+    margin-bottom: 16px;
+    line-height: 1.1;
+}
+
+.intel-help-subtitle {
+    font-size: 16px;
+    color: #64748b;
+    max-width: 600px;
+    margin: 0 auto 40px;
+    line-height: 1.6;
+}
+
+.intel-help-search-box {
+    max-width: 600px;
+    margin: 0 auto;
+    background: #fff;
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    padding: 10px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.04);
+}
+
+.intel-help-search-box input {
+    flex: 1;
+    height: 44px;
+    border: none;
+    background: none;
+    font-size: 15px;
+    font-weight: 600;
+    color: #0f172a;
+    outline: none;
+}
+
+.intel-help-grid {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 40px;
+}
+
+.intel-faq-manifest {
+    background: #fff;
+    border-radius: 32px;
+    border: 1px solid var(--border-color);
+    padding: 32px;
+}
+
+.manifest-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 32px;
+}
+
+.faq-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.intel-faq-item {
+    background: #f8fafc;
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.intel-faq-item:hover {
+    background: #fff;
+    border-color: var(--primary);
+}
+
+.faq-trigger {
+    padding: 20px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.faq-q {
+    font-size: 15px;
+    font-weight: 800;
+    color: #334155;
+}
+
+.faq-icon-vial {
+    width: 28px;
+    height: 28px;
+    background: #f1f5f9;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    transition: all 0.3s;
+}
+
+.intel-faq-item.open .faq-icon-vial {
+    background: var(--primary);
+    color: #fff;
+}
+
+.faq-inner {
+    padding: 0 24px 24px;
+}
+
+.faq-inner p {
+    font-size: 14px;
+    color: #64748b;
+    line-height: 1.6;
+}
+
+.intel-contact-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.intel-contact-card {
+    background: #fff;
+    border: 1px solid var(--border-color);
+    border-radius: 24px;
+    padding: 24px;
+    position: relative;
+}
+
+.intel-contact-card.primary {
+    background: #0f172a;
+    border: none;
+    color: #fff;
+}
+
+.card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+}
+
+.icon-vial {
+    width: 48px;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary);
+}
+
+.status-dot {
+    width: 10px;
+    height: 10px;
+    background: var(--success);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--success);
+}
+
+.intel-contact-card h3 {
+    font-size: 18px;
+    font-weight: 900;
+    margin-bottom: 8px;
+}
+
+.intel-btn-primary {
+    width: 100%;
+    height: 48px;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-weight: 800;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.intel-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(26, 167, 156, 0.3);
+}
+
+@media(max-width:1200px) {
+    .intel-help-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .intel-help-title {
+        font-size: 32px;
+    }
+}

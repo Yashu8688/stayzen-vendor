@@ -1,0 +1,11 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // OPEN RULES FOR TESTING AND DEVELOPMENT
+    // WARNING: This is insecure for production. 
+    // Secure these rules before deploying to a live user base.
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}

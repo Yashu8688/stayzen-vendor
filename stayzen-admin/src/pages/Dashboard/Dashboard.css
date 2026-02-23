@@ -1,0 +1,392 @@
+/* Szen Intelligence - HQ Theme CSS */
+.premium-hq {
+    animation: hqFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+
+
+/* 1. HQ Header */
+.hq-header-panel {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #ffffff;
+    padding: 16px 24px;
+    border-radius: 20px;
+    border: 1px solid var(--border-color);
+    margin-bottom: 20px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.02);
+}
+
+.hq-welcome h1 {
+    font-size: 24px;
+    font-weight: 900;
+    color: var(--primary);
+    letter-spacing: -1px;
+    margin: 0;
+}
+
+.hq-welcome p {
+    font-size: 13px;
+    color: var(--text-muted);
+    font-weight: 500;
+    margin-top: 2px;
+}
+
+.hq-launch-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 16px;
+    background: var(--primary);
+    border: none;
+    border-radius: 14px;
+    color: #ffffff;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.hq-launch-btn:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 45px rgba(26, 167, 156, 0.35);
+}
+
+.btn-vial {
+    width: 48px;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-info {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+}
+
+.btn-title {
+    font-size: 16px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+}
+
+.btn-subtitle {
+    font-size: 12px;
+    font-weight: 600;
+    opacity: 0.8;
+    margin-top: 2px;
+}
+
+/* 2. HQ STAT BOXES (Matching USER Photo) */
+.hq-metrics-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+    margin-bottom: 40px;
+}
+
+.hq-stat-box {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 18px;
+    border: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 140px;
+    transition: var(--transition);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.01);
+}
+
+.hq-stat-box:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.03);
+    border-color: var(--primary);
+}
+
+.hq-stat-icon-wrap {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.hq-stat-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+}
+
+.hq-stat-value {
+    font-size: 24px;
+    font-weight: 900;
+    margin: 0;
+    line-height: 1;
+}
+
+.hq-stat-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid #f1f5f9;
+}
+
+.hq-stat-trend {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.hq-stat-period {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+/* 3. HQ VIZ GRID (Another Method Graphs) */
+.hq-viz-grid {
+    display: grid;
+    grid-template-columns: 1.6fr 1.4fr;
+    gap: 32px;
+    margin-bottom: 40px;
+}
+
+.hq-viz-card {
+    background: #ffffff;
+    border-radius: 24px;
+    padding: 20px;
+    border: 1px solid var(--border-color);
+}
+
+.viz-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+}
+
+.viz-title h3 {
+    font-size: 22px;
+    font-weight: 900;
+    color: var(--primary);
+    margin: 0;
+}
+
+.viz-title p {
+    font-size: 14px;
+    color: var(--text-muted);
+    font-weight: 600;
+    margin-top: 4px;
+}
+
+.viz-chip {
+    padding: 8px 18px;
+    border-radius: 14px;
+    font-size: 12px;
+    font-weight: 700;
+    background: #f1f5f9;
+    color: var(--text-muted);
+    border: none;
+}
+
+.viz-chip.active {
+    background: var(--primary);
+    color: white;
+}
+
+.viz-badge {
+    padding: 6px 14px;
+    background: #f1f8f7;
+    color: var(--primary);
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+/* 4. HQ BOTTOM FEEDS */
+.hq-bottom-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+}
+
+.hq-feed-card {
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 24px;
+    border: 1px solid var(--border-color);
+}
+
+.feed-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    color: var(--primary);
+}
+
+.feed-header h3 {
+    font-size: 20px;
+    font-weight: 900;
+    margin: 0;
+}
+
+.feed-row {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 18px;
+    background: #fafbfc;
+    border-radius: 20px;
+    border: 1px solid var(--border-color);
+    margin-bottom: 12px;
+    transition: var(--transition);
+}
+
+.feed-row:hover {
+    transform: translateX(8px);
+    background: #ffffff;
+    border-color: var(--primary);
+}
+
+.feed-row.critical {
+    background: #fff1f2;
+    border-color: #fee2e2;
+    cursor: pointer;
+}
+
+.feed-row.critical .main {
+    color: #b91c1c;
+}
+
+.pulse-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #ef4444;
+    box-shadow: 0 0 0 rgba(239, 68, 68, 0.4);
+    animation: feedPulse 1.5s infinite;
+}
+
+@keyframes feedPulse {
+    0% {
+        transform: scale(0.9);
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+    }
+
+    70% {
+        transform: scale(1.1);
+        box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+    }
+
+    100% {
+        transform: scale(0.9);
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+    }
+}
+
+.dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.dot.blue {
+    background: #3b82f6;
+}
+
+.feed-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.feed-info .main {
+    font-size: 15px;
+    font-weight: 800;
+    color: #0f172a;
+}
+
+.feed-info .sub {
+    font-size: 13px;
+    color: #64748b;
+    font-weight: 600;
+    margin-top: 2px;
+}
+
+.activity-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 0;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.activity-row:last-child {
+    border-bottom: none;
+}
+
+.activity-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: #f1f8f7;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.activity-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.activity-main .name {
+    font-size: 14px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.activity-main .date {
+    font-size: 12px;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.status-pill {
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    padding: 6px 12px;
+    border-radius: 10px;
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+@media (max-width: 1200px) {
+    .hq-metrics-row {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .hq-viz-grid,
+    .hq-bottom-grid {
+        grid-template-columns: 1fr;
+    }
+}
