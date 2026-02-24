@@ -1,0 +1,565 @@
+.properties-page {
+    animation: fadeIn 0.4s ease-out;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+}
+
+.header-info h1 {
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--primary);
+    margin-bottom: 4px;
+}
+
+.header-info p {
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.local-search {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: #ffffff;
+    border: 1.5px solid var(--border-color);
+    border-radius: 14px;
+    padding: 0 16px;
+    width: 320px;
+    transition: var(--transition);
+}
+
+.local-search:focus-within {
+    border-color: var(--primary);
+    box-shadow: 0 4px 12px rgba(26, 167, 156, 0.08);
+}
+
+.search-icon {
+    color: var(--text-muted);
+}
+
+.local-search input {
+    width: 100%;
+    height: 44px;
+    border: none;
+    background: transparent;
+    padding-left: 12px;
+    font-size: 14px;
+    color: var(--text-main);
+}
+
+.tabs-container {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.tab-btn {
+    padding: 10px 20px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-muted);
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.tab-btn span {
+    font-size: 12px;
+    opacity: 0.7;
+}
+
+.tab-btn.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    box-shadow: 0 4px 12px rgba(26, 167, 156, 0.2);
+}
+
+.properties-table-card {
+    background: #ffffff;
+    border-radius: 24px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+    overflow: hidden;
+}
+
+.properties-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.properties-table th {
+    text-align: left;
+    padding: 16px 24px;
+    background: #fafbfc;
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.properties-table td {
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: middle;
+}
+
+.property-row:hover {
+    background: #fafbfc;
+}
+
+.prop-name-cell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.prop-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: #f1f8f7;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.prop-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.manager-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+.badge-type {
+    padding: 4px 10px;
+    background: #f1f5f9;
+    color: var(--text-muted);
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.rent-units {
+    display: flex;
+    flex-direction: column;
+}
+
+.rent-text {
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--primary);
+}
+
+.units-text {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+.location-cell {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.loc-icon {
+    color: var(--text-muted);
+}
+
+.location-text {
+    font-size: 13px;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.date-text {
+    font-size: 13px;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+.action-btns {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.action-icon-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-color);
+    background: white;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.action-icon-btn.approve {
+    color: var(--success);
+}
+
+.action-icon-btn.approve:hover {
+    background: #e6f7ef;
+    border-color: var(--success);
+}
+
+.action-icon-btn.reject {
+    color: var(--error);
+}
+
+.action-icon-btn.reject:hover {
+    background: #fff1f2;
+    border-color: var(--error);
+}
+
+.view-details-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    background: #f8fafc;
+    border: 1.5px solid var(--border-color);
+    border-radius: 10px;
+    color: var(--text-main);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.view-details-btn:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+/* Modals */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(15, 23, 42, 0.4);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+}
+
+.details-modal {
+    background: #ffffff;
+    width: 800px;
+    max-width: 90%;
+    border-radius: 32px;
+    overflow: hidden;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    animation: slideUp 0.4s ease-out;
+}
+
+.modal-header-modern {
+    padding: 32px;
+    background: #fafbfc;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.header-left-group h2 {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--primary);
+    margin-bottom: 8px;
+}
+
+.header-status-line {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.modern-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.modern-badge.processing {
+    background: #fff9e6;
+    color: var(--warning);
+}
+
+.modern-badge.approved {
+    background: #e6f7ef;
+    color: var(--success);
+}
+
+.modern-badge.rejected {
+    background: #fff1f2;
+    color: var(--error);
+}
+
+.status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.id-tag {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-muted);
+}
+
+.modern-close-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+}
+
+.modern-close-btn:hover {
+    background: #f1f5f9;
+    color: var(--error);
+}
+
+.modal-body-modern {
+    padding: 32px;
+    display: grid;
+    grid-template-columns: 1.8fr 1.2fr;
+    gap: 32px;
+}
+
+.modern-section-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.modern-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.modern-info-card {
+    background: #fafbfc;
+    border: 1px solid var(--border-color);
+    padding: 16px;
+    border-radius: 16px;
+}
+
+.modern-info-card label {
+    display: block;
+    font-size: 10px;
+    font-weight: 800;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+}
+
+.modern-info-card p {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-main);
+    margin: 0;
+}
+
+.highlight-text {
+    color: var(--primary) !important;
+}
+
+.bold-text {
+    color: #0f172a !important;
+    font-size: 16px !important;
+}
+
+.map-hero-box {
+    background: #f8fafc;
+    border: 1px solid var(--border-color);
+    padding: 24px;
+    border-radius: 20px;
+    margin-top: 16px;
+}
+
+.map-hero-text h4 {
+    font-size: 14px;
+    font-weight: 800;
+    margin-bottom: 4px;
+    color: var(--text-main);
+}
+
+.map-hero-text p {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+}
+
+.premium-map-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 20px;
+    background: #ffffff;
+    border: 1.5px solid var(--border-color);
+    border-radius: 12px;
+    color: var(--primary);
+    font-size: 14px;
+    font-weight: 700;
+    transition: var(--transition);
+}
+
+.premium-map-btn:hover {
+    border-color: var(--primary);
+    background: #f1f8f7;
+}
+
+.contacts-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.icon-stat {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.icon-wrapper {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: #f1f8f7;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+}
+
+.stat-info label {
+    display: block;
+    font-size: 9px;
+    font-weight: 800;
+    color: var(--text-muted);
+}
+
+.stat-info span {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.specs-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.modern-info-card.mini {
+    padding: 12px;
+}
+
+.premium-footer {
+    padding: 24px 32px;
+    background: #fafbfc;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modern-btn {
+    padding: 12px 24px;
+    border-radius: 14px;
+    font-size: 14px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.modern-btn.close {
+    color: var(--text-muted);
+}
+
+.modern-btn.close:hover {
+    background: #f1f5f9;
+}
+
+.action-group {
+    display: flex;
+    gap: 12px;
+}
+
+.modern-btn.reject {
+    background: #fff1f2;
+    color: var(--error);
+    border: 1px solid #fee2e2;
+}
+
+.modern-btn.reject:hover {
+    background: var(--error);
+    color: white;
+}
+
+.modern-btn.approve {
+    background: var(--primary);
+    color: white;
+    box-shadow: 0 4px 12px rgba(26, 167, 156, 0.25);
+}
+
+.modern-btn.approve:hover {
+    background: var(--primary-hover);
+    transform: translateY(-2px);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

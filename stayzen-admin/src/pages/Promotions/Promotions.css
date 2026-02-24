@@ -1,0 +1,193 @@
+.promotions-page {
+    animation: fadeIn 0.4s ease-out;
+}
+
+.add-coupon-btn {
+    background-color: var(--primary);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 700;
+    transition: var(--transition);
+}
+
+.add-coupon-btn:hover {
+    background-color: var(--primary-hover);
+    transform: scale(1.02);
+}
+
+.promotions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.coupon-card {
+    background-color: var(--bg-card);
+    border-radius: 20px;
+    border: 1px solid var(--border-color);
+    padding: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: var(--transition);
+}
+
+.coupon-card:hover {
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+    transform: translateY(-5px);
+}
+
+.coupon-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.25rem;
+}
+
+.coupon-code {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--primary);
+    background-color: #f0fdfa;
+    padding: 4px 12px;
+    border-radius: 8px;
+    border: 1px dashed var(--primary);
+}
+
+.status-pill {
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 20px;
+}
+
+.status-pill.active {
+    background-color: #ecfdf5;
+    color: #10b981;
+}
+
+.status-pill.scheduled {
+    background-color: #f0f9ff;
+    color: #0ea5e9;
+}
+
+.status-pill.expired {
+    background-color: #fef2f2;
+    color: #ef4444;
+}
+
+.coupon-body {
+    margin-bottom: 1.5rem;
+}
+
+.coupon-body h3 {
+    font-size: 1.85rem;
+    font-weight: 800;
+    color: var(--secondary);
+    margin-bottom: 2px;
+}
+
+.coupon-body p {
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+.usage-stats {
+    margin-top: 1rem;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.usage-stats strong {
+    color: var(--secondary);
+}
+
+.coupon-footer {
+    display: flex;
+    gap: 10px;
+    border-top: 1px solid #f1f5f9;
+    padding-top: 1rem;
+}
+
+.edit-btn,
+.del-btn {
+    flex: 1;
+    padding: 8px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    transition: var(--transition);
+}
+
+.edit-btn {
+    background-color: #f1f5f9;
+    color: var(--secondary);
+}
+
+.del-btn {
+    background-color: #fef2f2;
+    color: var(--error);
+}
+
+.edit-btn:hover {
+    background-color: #e2e8f0;
+}
+
+.del-btn:hover {
+    background-color: #fee2e2;
+}
+
+/* Form Styles */
+.promo-form-card {
+    margin-bottom: 2rem;
+}
+
+.promo-form {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr auto;
+    gap: 15px;
+    align-items: center;
+}
+
+.promo-form input,
+.promo-form select {
+    padding: 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 14px;
+    outline: none;
+    background: #f8fafc;
+}
+
+.promo-form input:focus {
+    border-color: var(--primary);
+}
+
+.promo-form .save-btn {
+    padding: 12px 24px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.loading-state,
+.empty-state {
+    padding: 40px;
+    text-align: center;
+    color: var(--text-muted);
+    grid-column: 1 / -1;
+}
+
+@media (max-width: 992px) {
+    .promo-form {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .promo-form .save-btn {
+        grid-column: span 2;
+    }
+}

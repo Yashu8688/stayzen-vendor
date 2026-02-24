@@ -1,0 +1,132 @@
+.footer-root {
+    background: var(--pm-zen-secondary);
+    color: white;
+    padding: 80px 32px 32px;
+    margin-top: 60px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1fr 1.2fr;
+    gap: 60px;
+    margin-bottom: 60px;
+}
+
+.footer-brand .brand-main {
+    font-size: 28px;
+    font-weight: 900;
+    color: white;
+    letter-spacing: -1px;
+}
+
+.footer-brand .brand-main span {
+    color: var(--pm-zen-primary);
+}
+
+.footer-desc {
+    margin-top: 24px;
+    color: #94a3b8;
+    line-height: 1.6;
+    font-size: 15px;
+    max-width: 300px;
+}
+
+.social-links {
+    display: flex;
+    gap: 16px;
+    margin-top: 32px;
+}
+
+.social-links a {
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    transition: all 0.3s;
+}
+
+.social-links a:hover {
+    background: var(--pm-zen-primary);
+    transform: translateY(-4px);
+}
+
+.footer-section h3 {
+    font-size: 18px;
+    font-weight: 800;
+    margin-bottom: 28px;
+    color: white;
+}
+
+.footer-section ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.footer-section ul li a {
+    color: #94a3b8;
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 600;
+    transition: color 0.2s;
+}
+
+.footer-section ul li a:hover {
+    color: var(--pm-zen-primary);
+}
+
+.contact-info {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.contact-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #94a3b8;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.contact-item svg {
+    color: var(--pm-zen-primary);
+}
+
+.footer-bottom {
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    padding-top: 32px;
+    text-align: center;
+}
+
+.footer-bottom p {
+    color: #64748b;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+@media (max-width: 1000px) {
+    .footer-content {
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
+    }
+}
+
+@media (max-width: 600px) {
+    .footer-content {
+        grid-template-columns: 1fr;
+    }
+
+    .footer-root {
+        padding: 60px 24px 24px;
+    }
+}

@@ -1,0 +1,271 @@
+/* Payments Page Styles - payments.css */
+.py-container {
+    padding-bottom: 30px;
+}
+
+.py-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+}
+
+.py-header-title h2 {
+    font-size: 24px;
+    color: #1f2937;
+    margin-bottom: 4px;
+}
+
+.py-header-title p {
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.py-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 24px;
+    margin-bottom: 32px;
+}
+
+.py-stat-card {
+    background: white;
+    padding: 24px;
+    border-radius: 16px;
+    border: 1px solid #e5e7eb;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.py-stat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.py-stat-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.py-stat-content h3 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 0;
+}
+
+.py-stat-content p {
+    font-size: 14px;
+    color: #6b7280;
+    margin-top: 4px;
+}
+
+.py-actions-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    gap: 16px;
+}
+
+.py-search-wrapper {
+    position: relative;
+    flex: 1;
+    max-width: 400px;
+}
+
+.py-search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+}
+
+.py-search-input {
+    width: 100%;
+    padding: 10px 10px 10px 40px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.py-search-input:focus {
+    border-color: #1aa79c;
+}
+
+.py-table-container {
+    background: white;
+    border-radius: 16px;
+    border: 1px solid #e5e7eb;
+    overflow: hidden;
+}
+
+.py-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.py-table th {
+    text-align: left;
+    padding: 16px 24px;
+    background: #f9fafb;
+    font-size: 13px;
+    font-weight: 600;
+    color: #4b5563;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.py-table td {
+    padding: 16px 24px;
+    font-size: 14px;
+    color: #1f2937;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.py-table tr:last-child td {
+    border-bottom: none;
+}
+
+.py-renter-profile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.py-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #f3f4f6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: #4b5563;
+}
+
+.py-renter-name {
+    display: block;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.py-property-info {
+    font-size: 13px;
+    color: #4b5563;
+    line-height: 1.4;
+}
+
+.py-date-box {
+    font-size: 12px;
+    color: #9ca3af;
+}
+
+.py-status-pill {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: capitalize;
+}
+
+.py-status-pill.success,
+.py-status-pill.completed {
+    background: #ecfdf5;
+    color: #059669;
+}
+
+.py-status-pill.pending {
+    background: #fffbeb;
+    color: #d97706;
+}
+
+.py-method-tag {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+}
+
+.py-method-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+}
+
+.py-primary-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: #1aa79c;
+    color: white;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 14px;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.py-primary-btn:hover {
+    background: #148f85;
+}
+
+/* Tabs */
+.py-tabs {
+    display: flex;
+    gap: 8px;
+    background: #f3f4f6;
+    padding: 4px;
+    border-radius: 12px;
+}
+
+.py-tab {
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    background: transparent;
+    color: #6b7280;
+    transition: all 0.2s;
+}
+
+.py-tab.active {
+    background: white;
+    color: #1aa79c;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.py-action-btn.collect {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 6px 14px;
+    background: #10b981;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.py-action-btn.collect:hover {
+    background: #059669;
+    transform: translateY(-1px);
+}
