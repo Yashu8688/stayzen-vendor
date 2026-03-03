@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquare, Search, Send, X, User, Clock } from 'lucide-react';
+import { MessageSquare, Search, Send, X, User, Clock, Menu } from 'lucide-react';
 import { auth } from '../firebase';
 import { subscribeToUserChats, subscribeToMessages, sendMessage } from '../services/dataService';
 import './Chats.css';
@@ -12,6 +12,7 @@ const Chats = () => {
     const [newMessage, setNewMessage] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
     const [loading, setLoading] = useState(true);
+    const [sidebarOpen, setSidebarOpen] = useState(false);
 
     useEffect(() => {
         if (!auth.currentUser) return;
@@ -59,7 +60,10 @@ const Chats = () => {
     return (
         <div className="chats-root">
             <div className="chats-container glass-panel">
-                <div className="chats-sidebar">
+                <button className="mobile-menu-toggle" onClick={() => setSidebarOpen(!sidebarOpen)}>
+                    <Menu size={20} />
+                </button>
+                <div className={`chats-sidebar ${sidebarOpen ? 'open' : ''}`}>
                     <div className="sidebar-header">
                         <h2>Your Chats</h2>
                         <div className="search-vial">
@@ -80,7 +84,10 @@ const Chats = () => {
                                 <motion.div
                                     key={chat.id}
                                     className={`chat-item ${activeChat?.id === chat.id ? 'active' : ''}`}
-                                    onClick={() => setActiveChat(chat)}
+                                    onClick={() => {
+                                        setActiveChat(chat);
+                                        if (window.innerWidth < 768) setSidebarOpen(false);
+                                    }}
                                     whileTap={{ scale: 0.98 }}
                                 >
                                     <div className="chat-avatar">
@@ -104,11 +111,12 @@ const Chats = () => {
                     </div>
                 </div>
 
-                <div className="chat-main">
+                <div className="chat-main" onClick={() => window.innerWidth < 768 && setSidebarOpen(false)}>
                     {activeChat ? (
                         <>
                             <div className="chat-header">
                                 <div className="header-user">
+                                    <button className="mobile-back-btn" onClick={() => { setActiveChat(null); setSidebarOpen(true); }}><X size={20} /></button>
                                     <div className="chat-avatar mini">
                                         <User size={16} />
                                     </div>
