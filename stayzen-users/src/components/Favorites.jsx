@@ -6,8 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import PropertyModal from './PropertyModal';
 import PropertyCard from './shared/PropertyCard';
-import './Favorites.css';
-import './Explore.css';
+import './Favorites-final.css';
 
 const Favorites = () => {
     const [favorites, setFavorites] = useState([]);
@@ -52,53 +51,41 @@ const Favorites = () => {
     };
 
     return (
-        <div className="ex-root favorites-page">
-            <div className="intel-simple-header" style={{ padding: '40px 40px 0' }}>
-                <div className="simple-header-content">
-                    <div className="ex-badge-vial" style={{ marginBottom: 12 }}>
-                        <Sparkles size={12} fill="#ea580c" color="#ea580c" />
-                        <span style={{ fontSize: 10, fontWeight: 900, textTransform: 'uppercase' }}>Memory Collective</span>
-                    </div>
-                    <h1 style={{ fontSize: 42, fontWeight: 900, letterSpacing: '-2px' }}>Personal Archive</h1>
-                    <p style={{ color: '#64748b', fontWeight: 500 }}>Your handpicked selection of premium living spaces.</p>
+        <div className="favorites-container">
+            <div className="fav-content">
+                <div className="fav-grid-header">
+                    <div className="fav-label">♥ SAVED ITEMS</div>
+                    <h1>Wishlist</h1>
+                    <p>Your saved properties</p>
                 </div>
-            </div>
 
-            <div className="ex-manifest" style={{ marginTop: 0, paddingTop: 40 }}>
-                <div className="ex-grid-view">
-                    <AnimatePresence mode='popLayout'>
-                        {loading ? (
-                            [1, 2, 3, 4].map(i => <div key={i} className="ex-skeleton card"></div>)
-                        ) : favorites.length > 0 ? (
-                            favorites.map((prop) => (
+                <AnimatePresence mode='popLayout'>
+                    {loading ? (
+                        <div className="fav-grid">
+                            {[1, 2, 3, 4].map(i => <div key={i} className="ex-skeleton card"></div>)}
+                        </div>
+                    ) : favorites.length > 0 ? (
+                        <div className="fav-grid">
+                            {favorites.map((prop) => (
                                 <PropertyCard
                                     key={prop.id}
                                     item={prop}
                                     isFavorite={userFavorites.includes(prop.id)}
                                     onToggleFavorite={handleToggleFavorite}
                                 />
-                            ))
-                        ) : (
-                            <motion.div
-                                key="empty"
-                                className="ex-empty-state"
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                style={{ gridColumn: '1 / -1', padding: '100px 0' }}
-                            >
-                                <div className="ex-empty-icon-box" style={{ width: 100, height: 100, background: 'white', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 30px', border: '1px dashed #e2e8f0' }}>
-                                    <Heart size={48} color="#cbd5e1" />
-                                </div>
-                                <h3 style={{ fontSize: 24, fontWeight: 900 }}>Archive Empty</h3>
-                                <p style={{ maxWidth: 400, margin: '15px auto 30px', color: '#64748b' }}>No properties saved to your memory bank. Initiate a global scan to find your next stay.</p>
-                                <button className="ex-reset-btn" onClick={() => navigate('/')}>
-                                    Locate Spaces
-                                    <Compass size={18} />
-                                </button>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="fav-empty">
+                            <Heart size={48} color="#cbd5e1" />
+                            <h3>No Saved Properties</h3>
+                            <p>Start exploring to save your favorites</p>
+                            <button className="fav-btn" onClick={() => navigate('/')}>
+                                Explore Properties
+                            </button>
+                        </div>
+                    )}
+                </AnimatePresence>
             </div>
 
             <AnimatePresence>

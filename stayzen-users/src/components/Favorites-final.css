@@ -1,0 +1,279 @@
+/* Complete Wishlist Container Reboot */
+
+* {
+    box-sizing: border-box;
+}
+
+.favorites-container {
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+}
+
+.fav-label {
+    font-size: 11px;
+    font-weight: 900;
+    color: #1aa79c;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    margin-bottom: 6px;
+    display: block;
+}
+
+.fav-header h1 {
+    font-size: 28px;
+    font-weight: 900;
+    color: #0f172a;
+    margin: 0 0 2px;
+    letter-spacing: -1px;
+}
+
+.fav-header p {
+    font-size: 13px;
+    color: #64748b;
+    font-weight: 500;
+    margin: 0;
+}
+
+.fav-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.fav-grid {
+    flex: 0 1 auto;
+    height: auto;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    padding: 12px 36px;
+    align-content: flex-start;
+    max-height: 100%;
+}
+
+.fav-grid-header {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 12px 36px;
+    border-bottom: 1px solid #f1f5f9;
+    margin: 0;
+    background: #fff;
+}
+
+.fav-empty {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 20px 36px;
+    gap: 10px;
+    min-height: 300px;
+}
+
+.fav-empty h3 {
+    font-size: 18px;
+    font-weight: 900;
+    color: #0f172a;
+    margin: 0;
+}
+
+.fav-empty p {
+    font-size: 13px;
+    color: #64748b;
+    margin: 0;
+    max-width: 280px;
+}
+
+.fav-btn {
+    margin-top: 2px;
+    padding: 9px 20px;
+    background: linear-gradient(135deg, #1aa79c 0%, #0f9e93 100%);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 4px 12px rgba(26, 167, 156, 0.2);
+}
+
+.fav-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(26, 167, 156, 0.3);
+}
+
+.fav-btn:active {
+    transform: translateY(0);
+}
+
+/* Loading Skeleton */
+.ex-skeleton.card {
+    height: 285px;
+    border-radius: 16px;
+    background: linear-gradient(90deg, #f0f4f8 0%, #d9e2ec 50%, #f0f4f8 100%);
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Tablet Styles (1024px) */
+@media(max-width: 1024px) {
+    .fav-grid-header {
+        padding: 10px 24px;
+    }
+
+    .fav-label {
+        font-size: 10px;
+        margin-bottom: 5px;
+    }
+
+    .fav-header h1 {
+        font-size: 26px;
+        margin-bottom: 2px;
+    }
+
+    .fav-header p {
+        font-size: 12px;
+    }
+
+    .fav-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        padding: 10px 24px;
+    }
+
+    .fav-empty {
+        padding: 20px 24px;
+        gap: 10px;
+    }
+}
+
+/* Tablet Styles (768px) */
+@media(max-width: 768px) {
+    .fav-grid-header {
+        padding: 8px 16px;
+    }
+
+    .fav-label {
+        font-size: 9px;
+        margin-bottom: 4px;
+    }
+
+    .fav-header h1 {
+        font-size: 22px;
+        margin-bottom: 1px;
+    }
+
+    .fav-header p {
+        font-size: 11px;
+    }
+
+    .fav-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        padding: 8px 16px;
+    }
+
+    .fav-empty {
+        padding: 16px;
+        gap: 8px;
+    }
+
+    .fav-empty {
+        padding: 16px;
+        gap: 8px;
+    }
+
+    .fav-empty h3 {
+        font-size: 16px;
+    }
+
+    .fav-empty p {
+        font-size: 12px;
+    }
+}
+
+/* Mobile (480px and below) */
+@media(max-width: 480px) {
+    .fav-grid-header {
+        padding: 8px 12px;
+    }
+
+    .fav-label {
+        font-size: 9px;
+        margin-bottom: 3px;
+    }
+
+    .fav-header h1 {
+        font-size: 20px;
+        margin: 0 0 1px;
+    }
+
+    .fav-header p {
+        font-size: 11px;
+        margin: 0;
+    }
+
+    .fav-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
+        padding: 8px 10px;
+    }
+
+    .fav-empty {
+        padding: 12px;
+        gap: 8px;
+    }
+
+    .fav-empty h3 {
+        font-size: 16px;
+    }
+
+    .fav-empty p {
+        font-size: 12px;
+        max-width: 260px;
+    }
+
+    .fav-btn {
+        padding: 8px 16px;
+        font-size: 11px;
+        margin-top: 2px;
+    }
+
+    .ex-skeleton.card {
+        height: 160px;
+    }
+}
+

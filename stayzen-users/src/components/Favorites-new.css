@@ -1,0 +1,247 @@
+/* Fresh Wishlist Page Styling */
+
+.favorites-container {
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    padding: 0 36px;
+    max-width: 1600px;
+    margin: 0 auto;
+    overflow: hidden;
+}
+
+.fav-header {
+    flex-shrink: 0;
+    padding: 12px 0 8px;
+    border-bottom: 1px solid #f1f5f9;
+    margin-bottom: 0;
+}
+
+.fav-header h1 {
+    font-size: 28px;
+    font-weight: 900;
+    color: #0f172a;
+    margin: 0 0 2px;
+    letter-spacing: -1px;
+}
+
+.fav-header p {
+    font-size: 13px;
+    color: #64748b;
+    font-weight: 500;
+    margin: 0;
+}
+
+.fav-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    justify-content: center;
+}
+
+.fav-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    padding: 12px 0;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.fav-empty {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 16px;
+    gap: 10px;
+}
+
+.fav-empty h3 {
+    font-size: 18px;
+    font-weight: 900;
+    color: #0f172a;
+    margin: 0;
+}
+
+.fav-empty p {
+    font-size: 13px;
+    color: #64748b;
+    margin: 0;
+    max-width: 280px;
+}
+
+.fav-btn {
+    margin-top: 2px;
+    padding: 9px 20px;
+    background: linear-gradient(135deg, #1aa79c 0%, #0f9e93 100%);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 4px 12px rgba(26, 167, 156, 0.2);
+}
+
+.fav-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(26, 167, 156, 0.3);
+}
+
+.fav-btn:active {
+    transform: translateY(0);
+}
+
+/* Loading Skeleton */
+.ex-skeleton.card {
+    height: 285px;
+    border-radius: 16px;
+    background: linear-gradient(90deg, #f0f4f8 0%, #d9e2ec 50%, #f0f4f8 100%);
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* Tablet Styles */
+@media(max-width: 1024px) {
+    .favorites-container {
+        padding: 0 20px;
+    }
+
+    .fav-header {
+        padding: 10px 0 8px;
+    }
+
+    .fav-header h1 {
+        font-size: 26px;
+    }
+
+    .fav-content {
+        padding: 0;
+        justify-content: center;
+    }
+
+    .fav-grid {
+        padding: 10px 0;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+}
+
+/* Mobile Tablet (768px) */
+@media(max-width: 768px) {
+    .favorites-container {
+        padding: 0 14px;
+    }
+
+    .fav-header {
+        padding: 8px 0 6px;
+    }
+
+    .fav-header h1 {
+        font-size: 22px;
+        margin-bottom: 2px;
+    }
+
+    .fav-header p {
+        font-size: 11px;
+    }
+
+    .fav-content {
+        padding: 0;
+        justify-content: center;
+    }
+
+    .fav-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        padding: 8px 0;
+    }
+}
+
+/* Mobile (480px) */
+@media(max-width: 480px) {
+    .favorites-container {
+        padding: 0 10px;
+        height: 100dvh;
+    }
+
+    .fav-header {
+        flex-shrink: 0;
+        padding: 6px 0 6px;
+        margin-bottom: 0;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .fav-header h1 {
+        font-size: 18px;
+        margin-bottom: 1px;
+    }
+
+    .fav-header p {
+        font-size: 10px;
+    }
+
+    .fav-content {
+        flex: 1;
+        padding: 0;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        justify-content: center;
+    }
+
+    .fav-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
+        padding: 6px 0;
+    }
+
+    .fav-empty {
+        padding: 16px 10px;
+        gap: 10px;
+    }
+
+    .fav-empty h3 {
+        font-size: 16px;
+    }
+
+    .fav-empty p {
+        font-size: 12px;
+    }
+
+    .fav-btn {
+        padding: 8px 18px;
+        font-size: 12px;
+        margin-top: 2px;
+    }
+
+    .ex-skeleton.card {
+        height: 160px;
+    }
+}

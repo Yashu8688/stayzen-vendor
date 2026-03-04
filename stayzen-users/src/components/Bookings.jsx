@@ -50,6 +50,20 @@ const Bookings = () => {
         }
     });
 
+    const loadRazorpay = () => {
+        return new Promise((resolve) => {
+            if (window.Razorpay) {
+                resolve(true);
+            } else {
+                const script = document.createElement('script');
+                script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+                script.onload = () => resolve(true);
+                script.onerror = () => resolve(false);
+                document.body.appendChild(script);
+            }
+        });
+    };
+
     const handleCancel = async (id) => {
         if (window.confirm("Are you sure you want to cancel this booking?")) {
             try {
@@ -62,7 +76,7 @@ const Bookings = () => {
         }
     };
 
-    const handlePayment = (booking) => {
+    const handlePayment = async (booking) => {
         // Use defined advance, or default to 1000 if explicitly 0 or missing
         let rawAmount = booking.advance;
         if (!rawAmount || rawAmount === '0' || rawAmount === 0) {
@@ -73,6 +87,14 @@ const Bookings = () => {
 
         if (amount <= 0) {
             alert("This stay has no advance payment required.");
+            return;
+        }
+
+        // Load Razorpay before opening payment dialog
+        const razorpayLoaded = await loadRazorpay();
+        
+        if (!razorpayLoaded) {
+            alert("Payment gateway is currently unavailable. Please check your internet connection and try again.");
             return;
         }
 
@@ -108,11 +130,6 @@ const Bookings = () => {
             },
             theme: { color: "#1aa79c" }
         };
-
-        if (!window.Razorpay) {
-            alert("Payment gateway is currently unavailable. Please check your internet connection and try again.");
-            return;
-        }
 
         const rzp = new window.Razorpay(options);
         rzp.open();

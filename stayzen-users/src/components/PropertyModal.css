@@ -223,17 +223,22 @@
     font-weight: 900;
     color: var(--pm-bg-dark);
     letter-spacing: -2px;
-    line-height: 1.1;
-    margin-bottom: 16px;
+    line-height: 1.2;
+    margin-bottom: 12px;
+    word-break: break-word;
+    overflow-wrap: break-word;
 }
 
 .pm-loc-text {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 8px;
     color: var(--pm-text-sec);
     font-size: 15px;
     font-weight: 500;
+    line-height: 1.4;
+    word-break: break-word;
+    overflow-wrap: break-word;
 }
 
 .pm-price-vial {
@@ -243,8 +248,10 @@
     padding: 24px;
     margin-bottom: 32px;
     display: flex;
+    flex-direction: column;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
+    gap: 16px;
 }
 
 .pm-amount-box label {
@@ -287,14 +294,18 @@
     font-size: 10px;
     font-weight: 800;
     color: var(--pm-text-sec);
-    margin-bottom: 6px;
+    margin-bottom: 8px;
     text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .pm-bento-item b {
     font-size: 18px;
     color: var(--pm-bg-dark);
     font-weight: 900;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.3;
 }
 
 .pm-section-head {
@@ -302,6 +313,7 @@
     align-items: center;
     gap: 12px;
     margin-bottom: 24px;
+    margin-top: 16px;
 }
 
 .pm-line {
@@ -323,6 +335,7 @@
     flex-wrap: wrap;
     gap: 8px;
     margin-bottom: 48px;
+    row-gap: 10px;
 }
 
 .pm-luxury-badge {
@@ -337,6 +350,8 @@
     font-weight: 700;
     color: var(--pm-bg-dark);
     transition: all 0.3s;
+    word-break: break-word;
+    overflow-wrap: break-word;
 }
 
 .pm-luxury-badge:hover {
@@ -369,17 +384,29 @@
     color: #fff;
     font-weight: 900;
     font-size: 20px;
+    flex-shrink: 0;
+}
+
+.pm-host-info {
+    flex: 1;
+    min-width: 0;
 }
 
 .pm-host-info b {
     display: block;
     font-size: 16px;
+    font-weight: 900;
+    color: var(--pm-bg-dark);
+    word-break: break-word;
+    overflow-wrap: break-word;
 }
 
 .pm-host-info span {
     font-size: 12px;
     color: var(--pm-text-sec);
     font-weight: 700;
+    display: block;
+    word-break: break-word;
 }
 
 .pm-action-footer {
@@ -450,30 +477,70 @@
         height: 100dvh;
         border-radius: 0;
         flex-direction: column;
+        max-width: 100%;
     }
 
     .pm-visual-side {
         width: 100%;
-        height: 45%;
+        height: 40%;
         /* Increased for better mobile presence */
     }
 
     .pm-info-side {
         width: 100%;
-        height: 55%;
-        padding: 24px 20px;
+        height: 60%;
+        padding: 20px 18px 80px;
+    }
+
+    .pm-close-circle {
+        top: 14px;
+        right: 14px;
+        width: 40px;
+        height: 40px;
+    }
+
+    .pm-main-title {
+        font-size: 32px;
+    }
+
+    .pm-action-footer {
+        margin: 20px -18px -80px;
+        padding: 20px;
+    }
+
+    .pm-prime-btn {
+        padding: 16px;
+        font-size: 16px;
     }
 }
 
 @media(max-width: 768px) {
+    .pm-close-circle {
+        width: 40px;
+        height: 40px;
+        top: 16px;
+        right: 16px;
+    }
+
+    .pm-close-circle svg {
+        width: 20px;
+        height: 20px;
+    }
+
     .pm-main-title {
-        font-size: 32px;
+        font-size: 28px;
         letter-spacing: -1.2px;
     }
 
     .pm-nav-ctrls {
         bottom: 20px;
         right: 20px;
+        gap: 10px;
+    }
+
+    .pm-nav-btn {
+        width: 40px;
+        height: 40px;
     }
 
     .pm-thumb-reel {
@@ -483,44 +550,348 @@
     }
 
     .pm-price-vial {
-        padding: 18px;
+        padding: 16px;
         border-radius: 20px;
+        margin-bottom: 20px;
     }
 
     .pm-val {
-        font-size: 24px !important;
+        font-size: 26px !important;
+    }
+
+    .pm-header-box {
+        margin-bottom: 20px;
+    }
+
+    .pm-info-side {
+        padding: 20px 18px;
+    }
+
+    .pm-type-tag {
+        padding: 5px 12px;
+        font-size: 10px;
+        margin-bottom: 12px;
+    }
+
+    .pm-bento-item {
+        padding: 14px;
+        border-radius: 16px;
+    }
+
+    .pm-action-footer {
+        padding: 24px;
+    }
+
+    .pm-prime-btn {
+        padding: 18px;
+        font-size: 16px;
+        border-radius: 16px;
     }
 }
 
 @media(max-width: 480px) {
+    .pm-overlay {
+        padding: 0 !important;
+        background: rgba(15, 23, 42, 0.95);
+    }
+
+    .pm-content-wrapper {
+        max-width: 100%;
+        height: 100vh;
+        border-radius: 0;
+        flex-direction: column;
+    }
+
+    .pm-dual-container {
+        flex-direction: column;
+        width: 100%;
+        height: 100%;
+    }
+
+    .pm-close-circle {
+        top: 16px;
+        right: 16px;
+        width: 40px;
+        height: 40px;
+        background: rgba(15, 23, 42, 0.95);
+    }
+
     .pm-visual-side {
-        height: 35%;
+        width: 100%;
+        height: 45%;
+        min-height: 240px;
     }
 
     .pm-info-side {
-        height: 65%;
+        width: 100%;
+        height: 55%;
+        padding: 14px 14px 80px 14px;
+        gap: 0;
+        overflow-y: auto;
+        position: relative;
+    }
+
+    .pm-info-side::after {
+        content: '';
+        position: sticky;
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 24px;
+        height: 24px;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%231aa79c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>');
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+        opacity: 0.6;
+        animation: scroll-hint 2s infinite;
+        margin-top: 8px;
+        pointer-events: none;
+    }
+
+    @keyframes scroll-hint {
+        0%, 20% {
+            transform: translateX(-50%) translateY(0);
+            opacity: 0.6;
+        }
+        50% {
+            transform: translateX(-50%) translateY(8px);
+            opacity: 0.3;
+        }
+        80%, 100% {
+            transform: translateX(-50%) translateY(0);
+            opacity: 0.6;
+        }
+    }
+
+    .pm-header-box {
+        margin-bottom: 14px;
+    }
+
+    .pm-type-tag {
+        padding: 5px 10px;
+        font-size: 8px;
+        margin-bottom: 10px;
+        display: inline-block;
     }
 
     .pm-main-title {
-        font-size: 28px;
+        font-size: 22px;
+        letter-spacing: -0.8px;
+        margin-bottom: 8px;
+        line-height: 1.3;
+        word-break: break-word;
+    }
+
+    .pm-loc-text {
+        font-size: 12px;
+        gap: 5px;
+        margin-bottom: 12px;
+        align-items: flex-start;
+        line-height: 1.4;
+    }
+
+    .pm-loc-text svg {
+        width: 15px;
+        height: 15px;
+        flex-shrink: 0;
+        margin-top: 2px;
+    }
+
+    .pm-price-vial {
+        padding: 12px;
+        margin-bottom: 14px;
+        border-radius: 14px;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+    }
+
+    .pm-amount-box {
+        flex: 1;
+    }
+
+    .pm-amount-box label {
+        font-size: 8px;
+        margin-bottom: 2px;
+        letter-spacing: 0.3px;
+    }
+
+    .pm-amount-box .pm-val {
+        font-size: 22px;
+        font-weight: 900;
+    }
+
+    .pm-live-badge {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11px;
+        flex-shrink: 0;
+        white-space: nowrap;
     }
 
     .pm-bento-stats {
         grid-template-columns: 1fr;
         gap: 8px;
+        margin-bottom: 14px;
     }
 
     .pm-bento-item {
-        padding: 16px;
+        padding: 11px;
+        border-radius: 11px;
+        border: 1px solid #f1f5f9;
+    }
+
+    .pm-bento-item label {
+        font-size: 8px;
+        margin-bottom: 3px;
+        letter-spacing: 0.3px;
+    }
+
+    .pm-bento-item b {
+        font-size: 13px;
+        font-weight: 900;
+        word-break: break-word;
+    }
+
+    .pm-section-head {
+        margin-bottom: 10px;
+        gap: 8px;
+        margin-top: 12px;
+    }
+
+    .pm-section-head h4 {
+        font-size: 11px;
+        letter-spacing: 0.5px;
+        font-weight: 800;
+    }
+
+    .pm-amenity-stack {
+        gap: 6px;
+        margin-bottom: 14px;
+        row-gap: 8px;
     }
 
     .pm-luxury-badge {
-        padding: 10px 16px;
-        font-size: 13px;
+        padding: 9px 12px;
+        font-size: 11px;
+        border-radius: 99px;
+        flex-shrink: 0;
+    }
+
+    .pm-luxury-badge svg {
+        width: 15px;
+        height: 15px;
+        flex-shrink: 0;
+    }
+
+    .pm-host-strip {
+        padding: 12px;
+        gap: 12px;
+        margin-bottom: 14px;
+        border-radius: 14px;
+        align-items: flex-start;
+    }
+
+    .pm-host-avatar {
+        width: 40px;
+        height: 40px;
+        font-size: 14px;
+        margin-top: 2px;
+    }
+
+    .pm-host-info b {
+        font-size: 12px;
+        word-break: break-word;
+    }
+
+    .pm-host-info span {
+        font-size: 10px;
+        word-break: break-word;
     }
 
     .pm-action-footer {
-        padding: 20px;
-        margin: 20px -20px -30px;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        margin: 0;
+        padding: 12px 16px 16px;
+        background: linear-gradient(to top, #ffffff 100%, transparent);
+        border-radius: 20px 20px 0 0;
+    }
+
+    .pm-prime-btn {
+        padding: 16px;
+        font-size: 15px;
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .pm-prime-btn:hover {
+        transform: translateY(-4px);
+    }
+
+    .pm-nav-ctrls {
+        bottom: 16px;
+        right: 16px;
+        gap: 8px;
+    }
+
+    .pm-nav-btn {
+        width: 36px;
+        height: 36px;
+    }
+
+    .pm-nav-btn svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    .pm-img-count {
+        top: 12px;
+        left: 12px;
+        padding: 4px 10px;
+        font-size: 10px;
+    }
+
+    .pm-thumb-reel {
+        bottom: 16px;
+        left: 0;
+        width: calc(100% - 80px);
+        padding: 0 16px;
+        gap: 8px;
+    }
+
+    .pm-mini-thumb {
+        width: 60px;
+        height: 40px;
+        border-radius: 8px;
+    }
+
+    .pm-input-slab {
+        margin-bottom: 16px;
+    }
+
+    .pm-input-slab label {
+        font-size: 11px;
+        margin-bottom: 6px;
+    }
+
+    .pm-input-slab input {
+        padding: 12px 14px;
+        font-size: 14px;
+        border-radius: 12px;
+    }
+
+    .pm-info-side::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    .pm-info-side::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 10px;
     }
 }

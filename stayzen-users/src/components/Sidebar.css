@@ -199,7 +199,28 @@
     padding: 0 12px;
 }
 
+.mobile-sidebar-overlay {
+    display: none;
+}
+
 @media(max-width:900px) {
+    .mobile-sidebar-overlay {
+        display: block;
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.5);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        z-index: 4999;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+    }
+
+    .mobile-sidebar-overlay.visible {
+        opacity: 1;
+        pointer-events: auto;
+    }
 
     .intel-sidebar,
     .intel-sidebar.closed,

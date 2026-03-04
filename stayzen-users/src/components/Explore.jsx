@@ -340,7 +340,7 @@ const Explore = () => {
                         initial={{ opacity: 0, y: -10 }}
                         animate={{ opacity: 1, y: 0 }}
                     >
-                        <ShieldCheck size={14} />
+                        <ShieldCheck size={11} />
                         <span>Verified Eco-system Presence</span>
                     </motion.div>
 
@@ -370,7 +370,7 @@ const Explore = () => {
                         transition={{ delay: 0.4, type: "spring", stiffness: 100 }}
                     >
                         <div className="ex-console-group">
-                            <label><Search size={14} /> Global Search</label>
+                            <label><Search size={11} /> Global Search</label>
                             <input
                                 type="text"
                                 placeholder="Search by city, area or sector..."
@@ -388,11 +388,11 @@ const Explore = () => {
                             ref={filterRef}
                             style={{ position: 'relative' }}
                         >
-                            <label><Filter size={14} /> Active Protocol</label>
+                            <label><Filter size={11} /> Active Protocol</label>
                             <div className="ex-select-vial">
                                 <span className="ex-summary-text">{getFilterSummary()}</span>
                                 <ChevronRight
-                                    size={14}
+                                    size={12}
                                     className={`ex-chevron ${isFilterOpen ? 'rotating' : ''}`}
                                     style={{ transform: isFilterOpen ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.3s' }}
                                 />
@@ -403,7 +403,7 @@ const Explore = () => {
                             onClick={handleLocate}
                             disabled={isLocating}
                         >
-                            <Compass size={20} className={isLocating ? "ex-spin" : "ex-spin-slow"} />
+                            <Compass size={16} className={isLocating ? "ex-spin" : "ex-spin-slow"} />
                             <span>{isLocating ? 'Locating...' : isDistanceFilterActive ? 'Near Me' : 'Locate'}</span>
                         </button>
                     </motion.div>
