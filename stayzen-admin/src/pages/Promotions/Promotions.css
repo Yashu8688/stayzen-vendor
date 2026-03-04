@@ -191,3 +191,166 @@
         grid-column: span 2;
     }
 }
+
+/* ===== RESPONSIVE DESIGN ===== */
+
+/* TABLET (768px) */
+@media (max-width: 768px) {
+    .promotions-grid {
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 1rem;
+    }
+
+    .coupon-card {
+        border-radius: 14px;
+        padding: 1.1rem;
+    }
+
+    .coupon-header {
+        margin-bottom: 1rem;
+    }
+
+    .coupon-code {
+        font-size: 0.9rem;
+    }
+
+    .status-pill {
+        font-size: 0.65rem;
+        padding: 3px 8px;
+    }
+
+    .coupon-body h3 {
+        font-size: 1.5rem;
+    }
+
+    .coupon-body p {
+        font-size: 0.85rem;
+    }
+
+    .usage-stats {
+        font-size: 0.8rem;
+        margin-top: 0.75rem;
+    }
+
+    .coupon-footer {
+        gap: 8px;
+        padding-top: 0.75rem;
+    }
+
+    .edit-btn,
+    .del-btn {
+        padding: 6px;
+        font-size: 0.8rem;
+    }
+
+    .promo-form {
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+
+    .promo-form input,
+    .promo-form select {
+        padding: 10px;
+        font-size: 13px;
+    }
+
+    .promo-form .save-btn {
+        grid-column: span 2;
+        padding: 10px;
+    }
+}
+
+/* MOBILE (480px) */
+@media (max-width: 480px) {
+    .promotions-page {
+        animation: fadeIn 0.3s ease-out;
+    }
+
+    .add-coupon-btn {
+        width: 100%;
+        padding: 10px 1rem;
+        font-size: 12px;
+    }
+
+    .promotions-grid {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+
+    .coupon-card {
+        border-radius: 12px;
+        padding: 0.9rem;
+    }
+
+    .coupon-header {
+        margin-bottom: 0.75rem;
+    }
+
+    .coupon-code {
+        font-size: 0.8rem;
+        font-weight: 700;
+    }
+
+    .discount-label {
+        font-size: 0.9rem;
+        padding: 2px 8px;
+    }
+
+    .status-pill {
+        font-size: 0.6rem;
+        padding: 3px 8px;
+    }
+
+    .coupon-body {
+        margin-bottom: 1rem;
+    }
+
+    .coupon-body h3 {
+        font-size: 1.3rem;
+        margin-bottom: 2px;
+    }
+
+    .coupon-body p {
+        font-size: 0.8rem;
+    }
+
+    .usage-stats {
+        font-size: 0.75rem;
+        margin-top: 0.5rem;
+    }
+
+    .coupon-footer {
+        gap: 6px;
+        padding-top: 0.5rem;
+    }
+
+    .edit-btn,
+    .del-btn {
+        padding: 5px 6px;
+        font-size: 0.75rem;
+    }
+
+    .promo-form {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .promo-form input,
+    .promo-form select {
+        padding: 8px 10px;
+        font-size: 12px;
+        border-radius: 8px;
+    }
+
+    .promo-form .save-btn {
+        grid-column: 1;
+        padding: 10px;
+        font-size: 12px;
+        border-radius: 8px;
+    }
+
+    .loading-state,
+    .empty-state {
+        padding: 30px 16px;
+    }
+}

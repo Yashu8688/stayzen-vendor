@@ -272,3 +272,259 @@
     text-align: center;
     color: #64748b;
 }
+
+/* ===== RESPONSIVE DESIGN ===== */
+
+/* TABLET (768px) */
+@media (max-width: 768px) {
+    .help-center-admin {
+        padding: 16px;
+        max-width: 100%;
+    }
+
+    .help-center-admin .page-header {
+        margin-bottom: 20px;
+    }
+
+    .help-center-admin h1 {
+        font-size: 20px;
+        margin-bottom: 6px;
+    }
+
+    .help-center-admin .header-info p {
+        font-size: 13px;
+    }
+
+    .admin-card {
+        border-radius: 14px;
+        padding: 16px;
+        margin-bottom: 16px;
+    }
+
+    .card-header {
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+    }
+
+    .card-header h3 {
+        font-size: 16px;
+    }
+
+    .card-header p {
+        font-size: 12px;
+    }
+
+    .form-group label {
+        font-size: 13px;
+    }
+
+    .phone-input-container {
+        gap: 8px;
+        flex-direction: column;
+    }
+
+    .country-code-box {
+        width: 100%;
+    }
+
+    .number-box {
+        width: 100%;
+    }
+
+    .form-group small {
+        font-size: 11px;
+    }
+
+    .add-faq-form {
+        gap: 8px;
+        flex-direction: column;
+    }
+
+    .add-faq-form input,
+    .add-faq-form button {
+        padding: 10px;
+        font-size: 12px;
+    }
+
+    .add-faq-form button {
+        width: 100%;
+    }
+
+    .admin-faq-list {
+        gap: 8px;
+    }
+
+    .admin-faq-item {
+        padding: 10px 12px;
+    }
+
+    .admin-faq-item span {
+        font-size: 13px;
+    }
+
+    .preview-item {
+        font-size: 13px;
+        padding: 8px 0;
+    }
+}
+
+/* MOBILE (480px) */
+@media (max-width: 480px) {
+    .help-center-admin {
+        padding: 12px;
+        max-width: 100%;
+    }
+
+    .help-center-admin .page-header {
+        margin-bottom: 16px;
+    }
+
+    .help-center-admin h1 {
+        font-size: 18px;
+        margin-bottom: 4px;
+    }
+
+    .help-center-admin .header-info p {
+        font-size: 12px;
+    }
+
+    .admin-card {
+        border-radius: 12px;
+        padding: 12px;
+        margin-bottom: 12px;
+    }
+
+    .card-header {
+        margin-bottom: 12px;
+        padding-bottom: 10px;
+    }
+
+    .card-header h3 {
+        font-size: 14px;
+    }
+
+    .card-header p {
+        font-size: 11px;
+    }
+
+    .support-form {
+        gap: 12px;
+    }
+
+    .form-group {
+        gap: 12px;
+    }
+
+    .form-group label {
+        font-size: 12px;
+        margin-bottom: 6px;
+    }
+
+    .form-group input,
+    .form-group textarea {
+        padding: 10px;
+        font-size: 12px;
+        border-radius: 8px;
+    }
+
+    .phone-input-container {
+        gap: 6px;
+        flex-direction: column;
+    }
+
+    .country-code-box {
+        width: 100%;
+        border-radius: 8px;
+    }
+
+    .country-code-box input {
+        padding: 10px;
+        font-size: 12px;
+    }
+
+    .number-box {
+        width: 100%;
+        border-radius: 8px;
+    }
+
+    .number-box input {
+        padding: 10px;
+        font-size: 12px;
+    }
+
+    .form-group small {
+        font-size: 10px;
+        margin-top: 4px;
+    }
+
+    .save-btn {
+        padding: 10px;
+        font-size: 12px;
+        border-radius: 8px;
+    }
+
+    .status-message {
+        padding: 10px;
+        font-size: 12px;
+        border-radius: 8px;
+    }
+
+    .faq-management {
+        gap: 12px;
+    }
+
+    .add-faq-form {
+        gap: 6px;
+        flex-direction: column;
+    }
+
+    .add-faq-form input {
+        padding: 10px;
+        font-size: 12px;
+        border-radius: 8px;
+    }
+
+    .add-faq-form button {
+        padding: 10px;
+        font-size: 12px;
+        border-radius: 8px;
+        width: 100%;
+    }
+
+    .admin-faq-list {
+        gap: 6px;
+    }
+
+    .admin-faq-item {
+        padding: 8px 10px;
+        flex-wrap: wrap;
+        border-radius: 8px;
+    }
+
+    .admin-faq-item span {
+        font-size: 12px;
+    }
+
+    .delete-faq-btn {
+        padding: 2px;
+    }
+
+    .empty-msg {
+        padding: 15px;
+        font-size: 12px;
+    }
+
+    .preview-list {
+        gap: 8px;
+    }
+
+    .preview-item {
+        font-size: 12px;
+        padding: 6px 0;
+        flex-wrap: wrap;
+    }
+
+    .loading {
+        padding: 30px 16px;
+    }
+}
