@@ -169,11 +169,11 @@ const DashboardLayout = ({ onLogout }) => {
                         )}
                     </div>
                 </div>
-            </header>isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-                <main className="page-content" onClick={() => window.innerWidth < 768 && setIsSidebarOpen(false)}
+            </header>
+
             <div className="main-container">
-                <Sidebar />
-                <main className="page-content">
+                <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+                <main className="page-content" onClick={() => window.innerWidth < 768 && setIsSidebarOpen(false)}>
                     <Outlet />
                 </main>
             </div>

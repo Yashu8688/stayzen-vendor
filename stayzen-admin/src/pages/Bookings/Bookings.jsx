@@ -6,7 +6,6 @@ import {
     Search,
     Filter,
     Download,
-    MoreHorizontal,
     User,
     Building2,
     Calendar,
@@ -125,16 +124,15 @@ const Bookings = () => {
                                 <th><div className="th-cell">Stay Flow</div></th>
                                 <th><div className="th-cell">Settlement</div></th>
                                 <th><div className="th-cell">Status</div></th>
-                                <th></th>
                             </tr>
                         </thead>
                         <tbody>
                             {filteredBookings.map(booking => (
                                 <tr key={booking.id} className="booking-tr">
-                                    <td className="td-id">
+                                    <td className="td-id" data-label="Reference #">
                                         <div className="id-vial">#{booking.displayId}</div>
                                     </td>
-                                    <td>
+                                    <td data-label="Asset Identity">
                                         <div className="asset-vial">
                                             <div className="asset-icon"><Building2 size={16} /></div>
                                             <div className="asset-info">
@@ -143,34 +141,29 @@ const Bookings = () => {
                                             </div>
                                         </div>
                                     </td>
-                                    <td>
+                                    <td data-label="User Profile">
                                         <div className="user-vial">
                                             <span className="user-main">{booking.userName}</span>
                                             <span className="user-sub"><Phone size={10} /> {booking.userPhone}</span>
                                         </div>
                                     </td>
-                                    <td>
+                                    <td data-label="Stay Flow">
                                         <div className="stay-vial">
                                             <span className="stay-type">{booking.stayType || 'Bachelor'}</span>
                                             <span className="stay-meta">{booking.gender} · {booking.occupation}</span>
                                         </div>
                                     </td>
-                                    <td className="td-amount">
+                                    <td className="td-amount" data-label="Settlement">
                                         <div className="amount-wrap">
                                             <span className="currency">₹</span>
                                             <span className="val">{booking.rent}</span>
                                         </div>
                                     </td>
-                                    <td>
+                                    <td data-label="Status">
                                         <div className={`status-vial status-${(booking.status || 'Upcoming').toLowerCase()}`}>
                                             {getStatusIcon(booking.status)}
                                             <span>{booking.status || 'Upcoming'}</span>
                                         </div>
-                                    </td>
-                                    <td className="td-actions">
-                                        <button className="row-action-btn">
-                                            <MoreHorizontal size={18} />
-                                        </button>
                                     </td>
                                 </tr>
                             ))}
