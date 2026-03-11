@@ -6,6 +6,7 @@ import {
   Users,
   CalendarClock,
   CreditCard,
+  Landmark,
   Home,
   ChevronRight,
   LogOut
@@ -18,6 +19,7 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen, onClose, onLo
     { id: 'properties', label: 'Properties', icon: <Building2 size={22} /> },
     { id: 'posts', label: 'Posts', icon: <FileText size={22} /> },
     { id: 'renters', label: 'Renters', icon: <Users size={22} /> },
+    { id: 'bank', label: 'Bank Details', icon: <Landmark size={22} /> },
     { id: 'bookings', label: 'Bookings', icon: <CalendarClock size={22} /> },
     { id: 'payments', label: 'Payments', icon: <CreditCard size={22} /> },
   ];

@@ -2,21 +2,28 @@
 
 :root {
     --primary: #1aa79c;
+    --primary-rgb: 26, 167, 156;
     --primary-light: #e6f6f5;
     --primary-hover: #148f85;
     --secondary: #0f172a;
+    --secondary-rgb: 15, 23, 42;
     --secondary-light: #1e293b;
-    --bg-main: #f0f4f9;
-    --bg-card: rgba(255, 255, 255, 0.9);
-    --text-main: #0f172a;
+    --accent: #8b5cf6;
+    --bg-main: #f8fafc;
+    --bg-card: rgba(255, 255, 255, 0.95);
+    --text-main: #1e293b;
     --text-muted: #64748b;
-    --border-color: rgba(226, 232, 240, 0.6);
+    --border-color: rgba(226, 232, 240, 0.8);
     --success: #10b981;
     --error: #ef4444;
     --warning: #f59e0b;
-    --sidebar-width: 280px;
-    --radius: 20px;
-    --transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    --radius-sm: 12px;
+    --radius-md: 20px;
+    --radius-lg: 32px;
+    --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --shadow-lg: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+    --transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 * {
@@ -35,6 +42,7 @@ body {
     color: var(--text-main);
     min-height: 100vh;
     overflow-x: hidden;
+    line-height: 1.5;
 }
 
 #root {
@@ -44,6 +52,7 @@ body {
 a {
     text-decoration: none;
     color: inherit;
+    transition: var(--transition);
 }
 
 button {
@@ -62,69 +71,94 @@ textarea {
     font-family: inherit;
 }
 
-/* Common UI Elements */
-.glass-panel {
+/* Glassmorphism Classes */
+.glass-nav {
     background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.03);
+    backdrop-filter: blur(24px) saturate(200%);
+    -webkit-backdrop-filter: blur(24px) saturate(200%);
+    border-bottom: 1px solid rgba(226, 232, 240, 0.5);
+    z-index: 1000;
 }
 
-.card {
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
+.glass-card {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: var(--shadow-md);
+    border-radius: var(--radius-md);
 }
 
-.btn-primary {
-    background: var(--primary);
-    color: white;
-    padding: 12px 24px;
-    border-radius: 14px;
-    font-weight: 800;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
+.card-hover {
     transition: var(--transition);
 }
 
-.btn-primary:hover {
-    background: var(--primary-hover);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(26, 167, 156, 0.2);
+.card-hover:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--primary-light);
 }
 
-.gradient-text {
-    background: linear-gradient(135deg, var(--primary), var(--secondary));
+/* Typography Utilities */
+.heading-l {
+    font-size: 2.5rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+}
+
+.heading-m {
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+
+.text-s {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
+.gradient-glow {
+    background: linear-gradient(135deg, var(--primary), #4fd1c5);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
-/* Custom Scrollbar */
+/* Buttons */
+.premium-btn {
+    background: var(--primary);
+    color: white;
+    padding: 12px 28px;
+    border-radius: 100px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 14px 0 rgba(26, 167, 156, 0.3);
+}
+
+.premium-btn:hover {
+    background: var(--primary-hover);
+    transform: scale(1.02);
+    box-shadow: 0 6px 20px rgba(26, 167, 156, 0.4);
+}
+
+/* Hide Scrollbar globally while keeping functionality */
 ::-webkit-scrollbar {
-    width: 6px;
+    display: none;
 }
 
-::-webkit-scrollbar-track {
-    background: transparent;
+* {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
 }
 
-::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 10px;
+.fade-up {
+    animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-::-webkit-scrollbar-thumb:hover {
-    background: #94a3b8;
-}
-
-.animated-view {
-    animation: hqFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@keyframes hqFadeIn {
+@keyframes fadeUp {
     from {
         opacity: 0;
         transform: translateY(20px);

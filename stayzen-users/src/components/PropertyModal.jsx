@@ -2,38 +2,19 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    X,
-    MapPin,
-    Star,
-    Home,
-    Wifi,
-    Coffee,
-    Wind,
-    Shield,
-    ChevronLeft,
-    ChevronRight,
-    Users,
-    Briefcase,
-    Calendar,
-    Phone,
-    CheckCircle2,
-    Sparkles,
-    ArrowRight,
-    Zap,
-    Bell
+    X, MapPin, Star, Home, Wifi, Coffee, Wind, Shield,
+    ChevronLeft, ChevronRight, Users, Briefcase, Calendar,
+    Phone, CheckCircle2, Sparkles, ArrowRight, Zap, Bell
 } from 'lucide-react';
-import { createBooking, addPaymentRecord, decrementAvailableUnits, notifyAdmin, notifyUser, requestAvailabilityNotification } from '../services/dataService';
+import { createBooking, notifyAdmin, requestAvailabilityNotification } from '../services/dataService';
 import { auth } from '../firebase';
 import './PropertyModal.css';
 
 const PropertyModal = ({ property, onClose }) => {
     const navigate = useNavigate();
     const [currentImg, setCurrentImg] = useState(0);
-    const [step, setStep] = useState(1); // 1: Details, 2: Booking Form, 3: Success
+    const [step, setStep] = useState(1);
     const [bookingData, setBookingData] = useState({
-        stayType: 'Bachelor',
-        occupation: 'Student',
-        gender: 'Male',
         name: auth.currentUser?.displayName || '',
         phone: '',
         moveInDate: new Date().toISOString().split('T')[0]
@@ -42,77 +23,38 @@ const PropertyModal = ({ property, onClose }) => {
 
     if (!property) return null;
 
-    // --- Unified Dynamic Data Mapping ---
-    const isRoom = (property.propertyType || property.type) === 'Room';
     const title = property.propertyName || property.name || 'Premium Property';
-
-    const rentVal = isRoom ? (property.dailyRent || property.rent || '0') : (property.monthlyRent || property.rent || '0');
-    const displayRent = rentVal.toString().includes('₹') ? rentVal : `₹${rentVal}`;
-    const periodLabel = isRoom ? 'daily rate' : 'monthly subscription';
-
-    const manager = property.managerName || property.manager || 'StayZen Partner';
-    const advance = property.advancePayment || property.advance || 'NA';
+    const isRoom = (property.propertyType || property.type)?.toLowerCase().includes('room');
+    const displayRent = property.rent || 'Price on Request';
     const location = property.location || (property.city ? `${property.city}, ${property.state}` : 'Premium Location');
-
-    // Safety check for images
     const images = property.imageUrls || property.images || [];
     const isAvailable = property.emptyUnits > 0;
 
-    const handleNextImg = (e) => {
-        e.stopPropagation();
-        if (images.length > 0) {
-            setCurrentImg((prev) => (prev + 1) % images.length);
-        }
-    };
-
-    const handlePrevImg = (e) => {
-        e.stopPropagation();
-        if (images.length > 0) {
-            setCurrentImg((prev) => (prev - 1 + images.length) % images.length);
-        }
-    };
+    let period = '';
+    if (displayRent !== 'Price on Request') {
+        const rt = property.rentType?.toLowerCase();
+        if (rt === 'daywise' || rt === 'daily' || property.dailyRent) period = '/day';
+        else if (rt === 'weekly' || property.weeklyRent) period = '/wk';
+        else period = '/mo';
+    }
 
     const handleInitializeBooking = () => {
         if (!auth.currentUser) {
-            alert("Please login to proceed with booking.");
             navigate('/auth');
             return;
         }
         setStep(2);
-        notifyAdmin(
-            'Booking Initialized',
-            `${auth.currentUser?.email || 'A user'} has started the booking process for ${title}.`,
-            { propertyId: property.id }
-        );
-    };
-
-    const handleNotifyMe = async () => {
-        if (!auth.currentUser) {
-            alert("Please login to request notifications.");
-            navigate('/auth');
-            return;
-        }
-        try {
-            await requestAvailabilityNotification(auth.currentUser.uid, property.id, title);
-            alert("Success! We will notify you and the admin as soon as this property has availability.");
-        } catch (error) {
-            alert("Failed to register for notifications.");
-        }
     };
 
     const handleBooking = async () => {
-        if (!auth.currentUser) {
-            alert("Please login to book a stay.");
-            return;
-        }
         if (!bookingData.phone || !bookingData.name) {
-            alert("Please provide both name and contact number");
+            alert("Please provide valid contact details.");
             return;
         }
 
         setIsSubmitting(true);
         try {
-            const bookingId = await createBooking({
+            await createBooking({
                 ...bookingData,
                 userId: auth.currentUser.uid,
                 userEmail: auth.currentUser.email,
@@ -121,276 +63,150 @@ const PropertyModal = ({ property, onClose }) => {
                 rent: displayRent,
                 status: 'Initial'
             });
-
             setStep(3);
-            notifyAdmin(
-                'New Booking!',
-                `${bookingData.name} has booked ${title}.`,
-                { propertyId: property.id, bookingId }
-            );
+            notifyAdmin('New Booking Interest', `${bookingData.name} is interested in ${title}.`);
         } catch (error) {
-            console.error(error);
-            alert("Booking failed. Please try again.");
+            alert("Connection error. Please try again.");
         } finally {
             setIsSubmitting(false);
         }
     };
 
     return (
-        <motion.div
-            className="pm-overlay"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-        >
+        <motion.div className="hq-modal-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} onClick={onClose}>
             <motion.div
-                className="pm-content-wrapper"
-                initial={{ y: "100%" }}
-                animate={{ y: 0 }}
-                exit={{ y: "100%" }}
-                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                style={{ willChange: 'transform' }}
+                className="hq-modal-content"
+                initial={{ y: 50, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
                 onClick={(e) => e.stopPropagation()}
             >
-                {/* Floating Absolute Controls */}
-                <div className="pm-close-circle" onClick={onClose}>
-                    <X size={24} />
-                </div>
+                <button className="hq-close-btn" onClick={onClose}><X size={24} /></button>
 
-                <div className="pm-dual-container">
-                    {/* --- LEFT SIDE: THE CINEMATIC --- */}
-                    <div className="pm-visual-side">
-                        <div className="pm-main-cinematic">
+                <div className="hq-modal-grid">
+                    <div className="hq-visual-panel">
+                        <div className="hq-stage">
                             <AnimatePresence mode="wait">
-                                <motion.div
+                                <motion.img
                                     key={currentImg}
-                                    style={{ width: '100%', height: '100%', position: 'relative' }}
+                                    src={images[currentImg] || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&q=80&w=1000'}
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
                                     exit={{ opacity: 0 }}
-                                    transition={{ duration: 0.6 }}
-                                >
-                                    <div
-                                        className="pm-stage-bg-blur"
-                                        style={{ backgroundImage: `url(${images[currentImg] || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&q=80&w=1000'})` }}
-                                    />
-                                    <img
-                                        src={images[currentImg] || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&q=80&w=1000'}
-                                        alt="Property Stage"
-                                        className="pm-stage-img"
-                                    />
-                                </motion.div>
+                                    transition={{ duration: 0.5 }}
+                                />
                             </AnimatePresence>
-                            <div className="pm-stage-overlay"></div>
-                            <div className="pm-img-count">
-                                {currentImg + 1} / {images.length || 1}
+                            <div className="hq-stage-nav">
+                                <button onClick={() => setCurrentImg((prev) => (prev - 1 + images.length) % images.length)}><ChevronLeft /></button>
+                                <button onClick={() => setCurrentImg((prev) => (prev + 1) % images.length)}><ChevronRight /></button>
                             </div>
-
-                            {images.length > 1 && (
-                                <div className="pm-nav-ctrls">
-                                    <button className="pm-nav-btn" onClick={handlePrevImg}><ChevronLeft size={24} /></button>
-                                    <button className="pm-nav-btn" onClick={handleNextImg}><ChevronRight size={24} /></button>
+                        </div>
+                        <div className="hq-thumb-grid">
+                            {images.map((img, i) => (
+                                <div key={i} className={`hq-thumb ${i === currentImg ? 'active' : ''}`} onClick={() => setCurrentImg(i)}>
+                                    <img src={img} alt="Thumbnail" />
                                 </div>
-                            )}
-
-                            <div className="pm-thumb-reel">
-                                {images.map((img, i) => (
-                                    <motion.div
-                                        key={i}
-                                        className={`pm-mini-thumb ${currentImg === i ? 'active' : ''}`}
-                                        onClick={() => setCurrentImg(i)}
-                                        whileHover={{ y: -4 }}
-                                        whileTap={{ scale: 0.95 }}
-                                    >
-                                        <img src={img} alt={`Slide ${i}`} />
-                                    </motion.div>
-                                ))}
-                            </div>
+                            ))}
                         </div>
                     </div>
 
-                    {/* --- RIGHT SIDE: THE CONTENT --- */}
-                    <div className="pm-info-side">
+                    <div className="hq-info-panel">
                         {step === 1 && (
                             <>
-                                <div className="pm-header-box">
-                                    <span className="pm-type-tag">{property.type}</span>
-                                    <h1 className="pm-main-title">{title}</h1>
-                                    <div className="pm-loc-text">
-                                        <MapPin size={18} />
+                                <div className="hq-info-header">
+                                    <span className="hq-cat-tag">{property.type}</span>
+                                    <h1>{title}</h1>
+                                    <div className="hq-loc-vial">
+                                        <MapPin size={16} />
                                         <span>{location}</span>
                                     </div>
                                 </div>
 
-                                <div className="pm-price-vial">
-                                    <div className="pm-amount-box">
-                                        <label>{isRoom ? 'Daily Rate' : 'Monthly Subscription'}</label>
-                                        <div className="pm-val">{displayRent}</div>
+                                <div className="hq-price-card">
+                                    <div className="price-info">
+                                        <label>Rent Amount</label>
+                                        <span className="val">{displayRent} <small style={{ fontSize: '14px', fontWeight: 'normal' }}>{period}</small></span>
                                     </div>
-                                    <div className="pm-live-badge">
-                                        <div className="pm-pulse-dot"></div>
-                                        <span>Live Feed</span>
+                                    <div className="status-pill">
+                                        <div className="dot" />
+                                        <span>Live Listing</span>
                                     </div>
                                 </div>
 
-                                <div className="pm-bento-stats">
-                                    <div className="pm-bento-item">
-                                        <label>Layout / Type</label>
-                                        <b style={{ color: 'var(--pp-primary)' }}>
-                                            {(() => {
-                                                const val = property.unitType || property.flatType || property.roomType || (property.features && (property.features.flatType || property.features.roomType)) || '';
-                                                const str = String(val).trim();
-                                                return (str && str.toLowerCase() !== 'true') ? str : (property.type === 'Apartment' ? '1BHK' : 'Standard');
-                                            })()}
-                                        </b>
-                                    </div>
-                                    <div className="pm-bento-item">
+                                <div className="hq-specs-box">
+                                    <div className="spec-node">
                                         <label>Availability</label>
-                                        <b style={{ color: isAvailable ? '#10b981' : '#ef4444' }}>
-                                            {isAvailable ? `${property.emptyUnits} Vacant` : 'Waitlisted'}
-                                        </b>
+                                        <span className={isAvailable ? 'text-pos' : 'text-neg'}>
+                                            {isAvailable ? `${property.emptyUnits} Units Left` : 'Fully Booked'}
+                                        </span>
                                     </div>
-                                    <div className="pm-bento-item">
-                                        <label>Furniture</label>
-                                        <b>{property.furnitureProvided || 'Semi-Furnished'}</b>
-                                    </div>
-                                    <div className="pm-bento-item">
-                                        <label>Advance Payment</label>
-                                        <b>{advance}</b>
+                                    <div className="spec-node">
+                                        <label>Advance</label>
+                                        <span>{property.advancePayment ? `₹${property.advancePayment}` : '1 Month'}</span>
                                     </div>
                                 </div>
 
-                                <div className="pm-section-head">
-                                    <h4>Living Infrastructure</h4>
-                                    <div className="pm-line"></div>
-                                </div>
-
-                                <div className="pm-amenity-stack">
-                                    {property.liftAvailable === 'Yes' && (
-                                        <div className="pm-luxury-badge"><Zap size={18} /> High-speed Lift</div>
-                                    )}
-                                    {property.parkingSpace === 'Yes' && (
-                                        <div className="pm-luxury-badge"><Briefcase size={18} /> Secured Parking</div>
-                                    )}
-                                    {property.powerBackup === 'Yes' && (
-                                        <div className="pm-luxury-badge"><Zap size={18} /> 24/7 Power</div>
-                                    )}
-                                    {property.waterAvailability === 'Yes' && (
-                                        <div className="pm-luxury-badge"><Wind size={18} /> Soft Water</div>
-                                    )}
-                                    {property.wifiAvailable === 'Yes' && (
-                                        <div className="pm-luxury-badge"><Wifi size={18} /> Fiber WiFi</div>
-                                    )}
-                                    {property.isProvidingAC === 'Yes' && property.type !== 'Apartment' && (
-                                        <div className="pm-luxury-badge"><Wind size={18} /> Air Conditioning</div>
-                                    )}
-                                    {property.individualCooking === 'Yes' && property.type !== 'Apartment' && (
-                                        <div className="pm-luxury-badge"><Coffee size={18} /> Private Kitchen</div>
-                                    )}
-                                </div>
-
-                                <div className="pm-section-head">
-                                    <h4>Facility Manager</h4>
-                                    <div className="pm-line"></div>
-                                </div>
-
-                                <div className="pm-host-strip">
-                                    <div className="pm-host-avatar">{manager?.[0]}</div>
-                                    <div className="pm-host-info">
-                                        <b>{manager}</b>
-                                        <span>StayZen Verified Partner</span>
+                                <div className="hq-amenities">
+                                    <h3>Infrastructure & Amenities</h3>
+                                    <div className="hq-badge-grid">
+                                        {property.wifiAvailable === 'Yes' && <div className="hq-badge"><Wifi size={14} /> WiFi</div>}
+                                        {property.powerBackup === 'Yes' && <div className="hq-badge"><Zap size={14} /> Power</div>}
+                                        {property.parkingSpace === 'Yes' && <div className="hq-badge"><Briefcase size={14} /> Parking</div>}
+                                        {property.waterAvailability === 'Yes' && <div className="hq-badge"><Wind size={14} /> Water</div>}
+                                        {property.liftAvailable === 'Yes' && <div className="hq-badge"><Layers size={14} /> Lift Access</div>}
+                                        {property.cctvSecurity === 'Yes' && <div className="hq-badge"><Shield size={14} /> Security</div>}
+                                        {property.individualCooking === 'Yes' && <div className="hq-badge"><Coffee size={14} /> Cooking</div>}
+                                        {property.isProvidingAC === 'Yes' && <div className="hq-badge"><Wind size={14} /> AC</div>}
+                                        <div className="hq-badge"><Home size={14} /> {property.furnitureProvided || 'Semi-Furnished'}</div>
                                     </div>
                                 </div>
 
-                                <div className="pm-action-footer">
+                                <div className="hq-footer-actions">
                                     <button
-                                        className={`pm-prime-btn ${!isAvailable ? 'waitlist' : ''}`}
-                                        onClick={isAvailable ? handleInitializeBooking : handleNotifyMe}
+                                        className={`hq-prime-btn ${!isAvailable ? 'disabled' : ''}`}
+                                        onClick={isAvailable ? handleInitializeBooking : () => alert('Waitlist active.')}
                                     >
-                                        {isAvailable ? 'Book Now' : 'Join the Waitlist'}
+                                        {isAvailable ? 'Secure this Space' : 'Join Waitlist'}
                                     </button>
                                 </div>
                             </>
                         )}
 
                         {step === 2 && (
-                            <motion.div
-                                className="pm-form-vial"
-                                initial={{ opacity: 0, x: 20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                            >
-                                <div className="pm-header-box">
-                                    <h2 className="pm-main-title">Complete Reservation</h2>
-                                    <p className="pm-loc-text">Provide details to sync your residency protocol.</p>
-                                </div>
-
-                                <div className="pm-input-slab">
-                                    <label>Full Identity</label>
+                            <div className="hq-booking-flow">
+                                <h2>Secure Your Residency</h2>
+                                <p>Confirm your details to finalize the reservation.</p>
+                                <div className="hq-input-group">
+                                    <label>Full Name</label>
                                     <input
                                         type="text"
-                                        placeholder="Legal Name"
                                         value={bookingData.name}
                                         onChange={(e) => setBookingData({ ...bookingData, name: e.target.value })}
                                     />
                                 </div>
-
-                                <div className="pm-input-slab">
-                                    <label>Active Contact</label>
+                                <div className="hq-input-group">
+                                    <label>Phone Number</label>
                                     <input
                                         type="tel"
-                                        placeholder="Phone Number"
                                         value={bookingData.phone}
                                         onChange={(e) => setBookingData({ ...bookingData, phone: e.target.value })}
                                     />
                                 </div>
-
-                                <div className="pm-input-slab">
-                                    <label>Proposed Move-in</label>
-                                    <input
-                                        type="date"
-                                        value={bookingData.moveInDate}
-                                        onChange={(e) => setBookingData({ ...bookingData, moveInDate: e.target.value })}
-                                    />
-                                </div>
-
-                                <div className="pm-action-footer">
-                                    <button
-                                        className="pm-prime-btn"
-                                        onClick={handleBooking}
-                                        disabled={isSubmitting}
-                                    >
-                                        {isSubmitting ? 'Synchronizing...' : `Finalize & Pay ${advance}`}
+                                <div className="hq-footer-actions">
+                                    <button className="hq-prime-btn" onClick={handleBooking} disabled={isSubmitting}>
+                                        {isSubmitting ? 'Processing...' : 'Complete Booking'}
                                     </button>
-                                    <button
-                                        className="pm-back-btn"
-                                        onClick={() => setStep(1)}
-                                        style={{ width: '100%', padding: '12px', background: 'none', border: 'none', color: '#64748b', fontSize: '13px', marginTop: '12px', cursor: 'pointer', fontWeight: '800' }}
-                                    >
-                                        RETURN TO DETAILS
-                                    </button>
+                                    <button className="hq-alt-btn" onClick={() => setStep(1)}>Back to Details</button>
                                 </div>
-                            </motion.div>
+                            </div>
                         )}
 
                         {step === 3 && (
-                            <motion.div
-                                className="pm-success-node"
-                                style={{ textAlign: 'center', padding: '100px 0' }}
-                                initial={{ scale: 0.9, opacity: 0 }}
-                                animate={{ scale: 1, opacity: 1 }}
-                            >
-                                <div className="pm-success-piston">
-                                    <CheckCircle2 size={80} color="#10b981" />
-                                </div>
-                                <h1 className="pm-main-title">Reservation Active</h1>
-                                <p style={{ color: '#64748b', fontSize: '16px', lineHeight: '1.6', marginBottom: '40px' }}>
-                                    Your protocol for <b>{title}</b> has been broadcast to the network. The manager will synchronize with you shortly.
-                                </p>
-                                <button className="pm-prime-btn" onClick={() => { onClose(); navigate('/bookings'); }}>
-                                    GO TO DASHBOARD
-                                </button>
-                            </motion.div>
+                            <div className="hq-success-view">
+                                <CheckCircle2 size={64} className="text-pos" />
+                                <h2>Request Received</h2>
+                                <p>Our residency team will coordinate with you shortly regarding <b>{title}</b>.</p>
+                                <button className="hq-prime-btn" onClick={onClose}>Finish</button>
+                            </div>
                         )}
                     </div>
                 </div>

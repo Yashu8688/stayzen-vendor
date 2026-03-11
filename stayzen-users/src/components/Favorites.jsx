@@ -53,18 +53,14 @@ const Favorites = () => {
 
     return (
         <div className="ex-root favorites-page">
-            <div className="intel-simple-header" style={{ padding: '40px 40px 0' }}>
+            <div className="intel-simple-header">
                 <div className="simple-header-content">
-                    <div className="ex-badge-vial" style={{ marginBottom: 12 }}>
-                        <Sparkles size={12} fill="#ea580c" color="#ea580c" />
-                        <span style={{ fontSize: 10, fontWeight: 900, textTransform: 'uppercase' }}>Memory Collective</span>
-                    </div>
-                    <h1 style={{ fontSize: 42, fontWeight: 900, letterSpacing: '-2px' }}>Personal Archive</h1>
-                    <p style={{ color: '#64748b', fontWeight: 500 }}>Your handpicked selection of premium living spaces.</p>
+                    <h1>Personal Archive</h1>
+                    <p>Your handpicked selection of premium living spaces.</p>
                 </div>
             </div>
 
-            <div className="ex-manifest" style={{ marginTop: 0, paddingTop: 40 }}>
+            <div className="ex-manifest">
                 <div className="ex-grid-view">
                     <AnimatePresence mode='popLayout'>
                         {loading ? (
@@ -84,13 +80,12 @@ const Favorites = () => {
                                 className="ex-empty-state"
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                style={{ gridColumn: '1 / -1', padding: '100px 0' }}
                             >
-                                <div className="ex-empty-icon-box" style={{ width: 100, height: 100, background: 'white', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 30px', border: '1px dashed #e2e8f0' }}>
+                                <div className="ex-empty-icon-box">
                                     <Heart size={48} color="#cbd5e1" />
                                 </div>
-                                <h3 style={{ fontSize: 24, fontWeight: 900 }}>Archive Empty</h3>
-                                <p style={{ maxWidth: 400, margin: '15px auto 30px', color: '#64748b' }}>No properties saved to your memory bank. Initiate a global scan to find your next stay.</p>
+                                <h3>Archive Empty</h3>
+                                <p>No properties saved to your memory bank. Initiate a global scan to find your next stay.</p>
                                 <button className="ex-reset-btn" onClick={() => navigate('/')}>
                                     Locate Spaces
                                     <Compass size={18} />

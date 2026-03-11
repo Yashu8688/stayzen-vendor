@@ -1,0 +1,259 @@
+/* RoommateMatching.css - Admin Side */
+.prop-type-tag {
+    margin-bottom: 6px;
+}
+
+.badge {
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.badge.external {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.badge.internal {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.mini-gallery {
+    position: relative;
+    width: 60px;
+    height: 40px;
+}
+
+.admin-prop-thumb {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+}
+
+.plus-count {
+    position: absolute;
+    bottom: -5px;
+    right: -5px;
+    background: var(--primary);
+    color: white;
+    font-size: 10px;
+    padding: 2px 5px;
+    border-radius: 50%;
+    border: 2px solid white;
+    font-weight: 800;
+}
+
+.no-media {
+    font-size: 11px;
+    color: #94a3b8;
+    font-style: italic;
+}
+
+/* Update table columns for media */
+.posts-table-wrapper th:nth-child(3),
+.posts-table-wrapper td:nth-child(3) {
+    width: 100px;
+}
+
+.roommate-admin {
+    padding: 20px;
+    background: #f8fafc;
+    min-height: 100vh;
+}
+
+.controls-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    margin-bottom: 20px;
+    border-radius: 12px;
+    background: white;
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.search-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #f1f5f9;
+    padding: 8px 15px;
+    border-radius: 8px;
+    width: 300px;
+}
+
+.search-box input {
+    border: none;
+    background: transparent;
+    font-size: 14px;
+    outline: none;
+    width: 100%;
+}
+
+.stats-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #e0f2fe;
+    color: #0369a1;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.posts-table-wrapper {
+    background: white;
+    border-radius: 12px;
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    overflow: hidden;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.admin-table th {
+    background: #f8fafc;
+    padding: 15px 20px;
+    text-align: left;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #64748b;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.admin-table td {
+    padding: 15px 20px;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 14px;
+}
+
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.avatar-small {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: #1aa79c;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.user-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.user-details .name {
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.user-details .email {
+    font-size: 12px;
+    color: #64748b;
+}
+
+.prop-info .prop-name {
+    font-weight: 600;
+    color: #1aa79c;
+    display: block;
+}
+
+.location-info {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: #64748b;
+    margin-top: 2px;
+}
+
+.qualities-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #f1f5f9;
+    padding: 4px 10px;
+    border-radius: 6px;
+    color: #475569;
+}
+
+.rent-badge {
+    display: flex;
+    flex-direction: column;
+}
+
+.rent-badge .sharing {
+    font-size: 11px;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.rent-badge .price {
+    color: #1aa79c;
+    font-weight: 800;
+    font-size: 15px;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.action-buttons button {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    border: none;
+    cursor: pointer;
+}
+
+.del-btn {
+    background: #fee2e2;
+    color: #ef4444;
+}
+
+.del-btn:hover {
+    background: #ef4444;
+    color: white;
+    transform: scale(1.1);
+}
+
+.date-text {
+    font-size: 12px;
+    color: #94a3b8;
+}
+
+.loading-cell,
+.empty-cell {
+    text-align: center;
+    padding: 50px !important;
+    color: #64748b;
+    font-style: italic;
+}

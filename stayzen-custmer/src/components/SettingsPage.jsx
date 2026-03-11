@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { IoPersonOutline, IoNotificationsOutline, IoLockClosedOutline, IoShieldCheckmarkOutline, IoGlobeOutline, IoMoonOutline, IoCheckmarkCircle } from 'react-icons/io5';
+import { IoPersonOutline, IoNotificationsOutline, IoLockClosedOutline, IoShieldCheckmarkOutline, IoGlobeOutline, IoMoonOutline, IoCheckmarkCircle, IoCardOutline, IoCheckmarkDoneCircleOutline, IoAlertCircleOutline } from 'react-icons/io5';
 import './settings.css';
-import { getUserProfile, updateUserProfile, convertToBase64 } from '../services/dataService';
+import { getUserProfile, updateUserProfile, uploadImage, compressImage } from '../services/dataService';
 import { auth } from '../firebase';
 import { updatePassword, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth';
 
@@ -26,8 +26,23 @@ export default function SettingsPage({ userId }) {
             darkMode: false,
             autoRefresh: true
         },
-        avatar: '' // Added avatar field
+        avatar: ''
     });
+
+    // Bank Details State
+    const [bankDetails, setBankDetails] = useState({
+        accountHolderName: '',
+        accountNumber: '',
+        confirmAccountNumber: '',
+        ifscCode: '',
+        bankName: '',
+        accountType: 'Savings',
+        upiId: '',
+        verified: false
+    });
+    const [isSavingBank, setIsSavingBank] = useState(false);
+    const [bankSaveSuccess, setBankSaveSuccess] = useState(false);
+    const [bankError, setBankError] = useState('');
 
     // Password State
     const [passwordData, setPasswordData] = useState({
@@ -56,10 +71,13 @@ export default function SettingsPage({ userId }) {
                     setProfile(prev => ({
                         ...prev,
                         ...data,
-                        // Ensure nested objects exist
                         notifications: data.notifications || prev.notifications,
                         preferences: data.preferences || prev.preferences
                     }));
+                    // Load saved bank details if present
+                    if (data.bankDetails) {
+                        setBankDetails(prev => ({ ...prev, ...data.bankDetails, confirmAccountNumber: data.bankDetails.accountNumber || '' }));
+                    }
                 }
             } catch (error) {
                 console.error("Settings fetch error:", error);
@@ -75,7 +93,46 @@ export default function SettingsPage({ userId }) {
         { id: 'profile', label: 'Profile Settings', icon: <IoPersonOutline size={20} /> },
         { id: 'notifications', label: 'Notifications', icon: <IoNotificationsOutline size={20} /> },
         { id: 'security', label: 'Security & Password', icon: <IoLockClosedOutline size={20} /> },
+        { id: 'bank', label: 'Bank & Payments', icon: <IoCardOutline size={20} /> },
     ];
+
+    const handleBankSave = async () => {
+        setBankError('');
+        if (!bankDetails.accountHolderName || !bankDetails.accountNumber || !bankDetails.ifscCode || !bankDetails.bankName) {
+            setBankError('Please fill in all required fields.');
+            return;
+        }
+        if (bankDetails.accountNumber !== bankDetails.confirmAccountNumber) {
+            setBankError('Account numbers do not match. Please re-enter.');
+            return;
+        }
+        const ifscRegex = /^[A-Z]{4}0[A-Z0-9]{6}$/;
+        if (!ifscRegex.test(bankDetails.ifscCode.toUpperCase())) {
+            setBankError('Invalid IFSC code format. Example: SBIN0001234');
+            return;
+        }
+        try {
+            setIsSavingBank(true);
+            const dataToSave = {
+                accountHolderName: bankDetails.accountHolderName,
+                accountNumber: bankDetails.accountNumber,
+                ifscCode: bankDetails.ifscCode.toUpperCase(),
+                bankName: bankDetails.bankName,
+                accountType: bankDetails.accountType,
+                upiId: bankDetails.upiId || '',
+                verified: false,
+                savedAt: new Date().toISOString()
+            };
+            await updateUserProfile(userId, { bankDetails: dataToSave });
+            setBankSaveSuccess(true);
+            setTimeout(() => setBankSaveSuccess(false), 4000);
+        } catch (error) {
+            console.error('Bank save error:', error);
+            setBankError('Failed to save. Please try again.');
+        } finally {
+            setIsSavingBank(false);
+        }
+    };
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -112,11 +169,15 @@ export default function SettingsPage({ userId }) {
         if (!file) return;
 
         try {
-            const base64 = await convertToBase64(file);
-            setProfile(prev => ({ ...prev, avatar: base64 }));
+            setIsSaving(true);
+            const compressedBlob = await compressImage(file);
+            const imageUrl = await uploadImage(compressedBlob, `profile_${userId}.jpg`, 'profiles');
+            setProfile(prev => ({ ...prev, avatar: imageUrl }));
         } catch (error) {
             console.error("Image upload error:", error);
             alert("Failed to upload image.");
+        } finally {
+            setIsSaving(false);
         }
     };
 
@@ -337,6 +398,155 @@ export default function SettingsPage({ userId }) {
                         </div>
                     </div>
                 );
+            case 'bank':
+                return (
+                    <div className="st-section">
+                        <h3 className="st-section-title">Bank & Payment Details</h3>
+                        <p className="st-section-desc">Add your bank account to receive payouts. 90% of each booking payment will be transferred to this account automatically.</p>
+
+                        {/* Status Banner */}
+                        <div style={{
+                            display: 'flex', alignItems: 'center', gap: '12px',
+                            padding: '14px 18px', borderRadius: '14px', marginBottom: '24px',
+                            background: bankDetails.accountNumber ? '#f0fdf4' : '#fefce8',
+                            border: `1px solid ${bankDetails.accountNumber ? '#bbf7d0' : '#fde68a'}`
+                        }}>
+                            {bankDetails.accountNumber
+                                ? <IoCheckmarkDoneCircleOutline size={22} color="#16a34a" />
+                                : <IoAlertCircleOutline size={22} color="#d97706" />}
+                            <div>
+                                <div style={{ fontWeight: '700', fontSize: '14px', color: bankDetails.accountNumber ? '#15803d' : '#92400e' }}>
+                                    {bankDetails.accountNumber ? '✅ Bank Account Linked' : '⚠️ No Bank Account Added'}
+                                </div>
+                                <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
+                                    {bankDetails.accountNumber
+                                        ? `${bankDetails.bankName} — ****${bankDetails.accountNumber.slice(-4)} | Payouts enabled for Phase 2`
+                                        : 'Add your bank details below to receive automatic payouts via Razorpay Route'}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Error */}
+                        {bankError && (
+                            <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '10px', padding: '12px 16px', marginBottom: '20px', color: '#dc2626', fontSize: '13px', fontWeight: '600' }}>
+                                {bankError}
+                            </div>
+                        )}
+
+                        <div className="st-form-grid">
+                            <div className="st-form-group">
+                                <label>ACCOUNT HOLDER NAME *</label>
+                                <input
+                                    type="text"
+                                    className="st-form-input"
+                                    placeholder="As per bank records"
+                                    value={bankDetails.accountHolderName}
+                                    onChange={e => setBankDetails(p => ({ ...p, accountHolderName: e.target.value }))}
+                                />
+                            </div>
+                            <div className="st-form-group">
+                                <label>BANK NAME *</label>
+                                <select
+                                    className="st-form-input"
+                                    value={bankDetails.bankName}
+                                    onChange={e => setBankDetails(p => ({ ...p, bankName: e.target.value }))}
+                                    style={{ cursor: 'pointer' }}
+                                >
+                                    <option value="">Select Bank</option>
+                                    {['State Bank of India', 'HDFC Bank', 'ICICI Bank', 'Axis Bank', 'Kotak Mahindra Bank', 'Punjab National Bank', 'Bank of Baroda', 'Canara Bank', 'Union Bank of India', 'IndusInd Bank', 'Yes Bank', 'Federal Bank', 'IDFC First Bank', 'Other'].map(b => (
+                                        <option key={b} value={b}>{b}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="st-form-group">
+                                <label>ACCOUNT NUMBER *</label>
+                                <input
+                                    type="password"
+                                    className="st-form-input"
+                                    placeholder="Enter account number"
+                                    value={bankDetails.accountNumber}
+                                    onChange={e => setBankDetails(p => ({ ...p, accountNumber: e.target.value }))}
+                                />
+                            </div>
+                            <div className="st-form-group">
+                                <label>CONFIRM ACCOUNT NUMBER *</label>
+                                <input
+                                    type="text"
+                                    className="st-form-input"
+                                    placeholder="Re-enter account number"
+                                    value={bankDetails.confirmAccountNumber}
+                                    onChange={e => setBankDetails(p => ({ ...p, confirmAccountNumber: e.target.value }))}
+                                />
+                                {bankDetails.accountNumber && bankDetails.confirmAccountNumber && (
+                                    <span style={{ fontSize: '12px', marginTop: '4px', display: 'block', fontWeight: '600', color: bankDetails.accountNumber === bankDetails.confirmAccountNumber ? '#16a34a' : '#dc2626' }}>
+                                        {bankDetails.accountNumber === bankDetails.confirmAccountNumber ? '✓ Numbers match' : '✗ Numbers do not match'}
+                                    </span>
+                                )}
+                            </div>
+                            <div className="st-form-group">
+                                <label>IFSC CODE *</label>
+                                <input
+                                    type="text"
+                                    className="st-form-input"
+                                    placeholder="e.g. SBIN0001234"
+                                    value={bankDetails.ifscCode}
+                                    onChange={e => setBankDetails(p => ({ ...p, ifscCode: e.target.value.toUpperCase() }))}
+                                    maxLength={11}
+                                />
+                            </div>
+                            <div className="st-form-group">
+                                <label>ACCOUNT TYPE *</label>
+                                <select
+                                    className="st-form-input"
+                                    value={bankDetails.accountType}
+                                    onChange={e => setBankDetails(p => ({ ...p, accountType: e.target.value }))}
+                                    style={{ cursor: 'pointer' }}
+                                >
+                                    <option value="Savings">Savings Account</option>
+                                    <option value="Current">Current Account</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="st-form-group" style={{ marginTop: '8px' }}>
+                            <label>UPI ID (Optional)</label>
+                            <input
+                                type="text"
+                                className="st-form-input"
+                                placeholder="yourname@upi"
+                                value={bankDetails.upiId}
+                                onChange={e => setBankDetails(p => ({ ...p, upiId: e.target.value }))}
+                            />
+                            <span style={{ fontSize: '12px', color: '#64748b', marginTop: '4px', display: 'block' }}>UPI is an alternative payout method for faster transfers.</span>
+                        </div>
+
+                        {/* Info Box */}
+                        <div style={{ background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: '14px', padding: '16px 20px', marginTop: '24px' }}>
+                            <div style={{ fontWeight: '700', fontSize: '13px', color: '#0369a1', marginBottom: '8px' }}>📋 How Payouts Work</div>
+                            <ul style={{ margin: 0, paddingLeft: '20px', fontSize: '13px', color: '#0c4a6e', lineHeight: '1.8' }}>
+                                <li>User pays full amount during booking</li>
+                                <li><strong>90%</strong> is automatically transferred to your bank within 2-3 business days</li>
+                                <li><strong>10%</strong> is retained by StayZen as platform commission</li>
+                                <li>All transfers are processed securely via <strong>Razorpay Route</strong></li>
+                            </ul>
+                        </div>
+
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '12px', marginTop: '24px', flexWrap: 'wrap' }}>
+                            {bankSaveSuccess && (
+                                <div style={{ color: '#16a34a', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px', fontWeight: '600', marginRight: 'auto' }}>
+                                    <IoCheckmarkCircle size={20} /> Bank details saved successfully!
+                                </div>
+                            )}
+                            <button className="st-btn-outline" onClick={() => setBankDetails({ accountHolderName: '', accountNumber: '', confirmAccountNumber: '', ifscCode: '', bankName: '', accountType: 'Savings', upiId: '', verified: false })}>
+                                Clear
+                            </button>
+                            <button className="st-btn-save" onClick={handleBankSave} disabled={isSavingBank}>
+                                {isSavingBank ? 'Saving...' : '💾 Save Bank Details'}
+                            </button>
+                        </div>
+                    </div>
+                );
+
             default:
                 return null;
         }

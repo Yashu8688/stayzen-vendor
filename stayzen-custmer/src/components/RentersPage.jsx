@@ -498,10 +498,10 @@ export default function RentersPage({ userId }) {
                                 </div>
                                 <div className="balance-progress">
                                     <div className="progress-bar">
-                                        <div 
-                                            className="progress-fill" 
-                                            style={{ 
-                                                width: `${Math.min(100, ((Number(amountToPay) + Number(addPaymentAmount || 0)) / Number(rentAmount)) * 100)}%` 
+                                        <div
+                                            className="progress-fill"
+                                            style={{
+                                                width: `${Math.min(100, ((Number(amountToPay) + Number(addPaymentAmount || 0)) / Number(rentAmount)) * 100)}%`
                                             }}
                                         ></div>
                                     </div>
@@ -541,20 +541,20 @@ export default function RentersPage({ userId }) {
                                     </select>
                                 </div>
 
-                            <div className="rn-form-group">
-                                <label>Adjust Monthly Rent (₹)</label>
-                                <div className="input-with-icon">
-                                    <input
-                                        type="number"
-                                        className="rn-form-input"
-                                        value={rentAmount || ''}
-                                        onChange={(e) => setRentAmount(e.target.value)}
-                                        placeholder="Monthly rent amount"
-                                    />
+                                <div className="rn-form-group">
+                                    <label>Adjust Monthly Rent (₹)</label>
+                                    <div className="input-with-icon">
+                                        <input
+                                            type="number"
+                                            className="rn-form-input"
+                                            value={rentAmount || ''}
+                                            onChange={(e) => setRentAmount(e.target.value)}
+                                            placeholder="Monthly rent amount"
+                                        />
+                                    </div>
+                                    <p className="input-hint">Update this only if monthly rent has changed.</p>
                                 </div>
-                                <p className="input-hint">Update this only if monthly rent has changed.</p>
                             </div>
-                        </div>
                         </div>
 
                         <div className="rn-modal-footer">
@@ -589,29 +589,37 @@ export default function RentersPage({ userId }) {
                             </button>
                         </div>
 
-                        <div className="payment-summary-card" style={{ marginBottom: '20px' }}>
-                            <div className="summary-item">
-                                <span>Monthly Rent</span>
-                                <strong>₹{Number(selectedRenterForHistory.rentAmount).toLocaleString()}</strong>
-                            </div>
-                            <div className="summary-divider"></div>
-                            <div className="summary-item">
-                                <span>Advance Paid</span>
-                                <strong style={{ color: '#10b981' }}>₹{Number(selectedRenterForHistory.deposit || 0).toLocaleString()}</strong>
-                            </div>
-                            <div className="summary-divider"></div>
-                            <div className="summary-item">
-                                <span>Total Paid</span>
-                                <strong style={{ color: '#10b981' }}>₹{Number(selectedRenterForHistory.paidAmount).toLocaleString()}</strong>
-                            </div>
-                            <div className="summary-divider"></div>
-                            <div className="summary-item">
-                                <span>Balance</span>
-                                <strong style={{ color: (selectedRenterForHistory.rentAmount - selectedRenterForHistory.paidAmount) > 0 ? '#ef4444' : '#10b981' }}>
-                                    ₹{Math.max(0, Number(selectedRenterForHistory.rentAmount) - Number(selectedRenterForHistory.paidAmount)).toLocaleString()}
-                                </strong>
-                            </div>
+                        <div style={{
+                            background: '#f8fafc',
+                            borderRadius: '14px',
+                            border: '1px solid #e2e8f0',
+                            overflow: 'hidden',
+                            marginBottom: '20px'
+                        }}>
+                            {[
+                                { label: 'Monthly Rent', value: `₹${Number(selectedRenterForHistory.rentAmount).toLocaleString()}`, color: '#334155' },
+                                { label: 'Advance Paid', value: `₹${Number(selectedRenterForHistory.deposit || 0).toLocaleString()}`, color: '#10b981' },
+                                { label: 'Total Paid', value: `₹${Number(selectedRenterForHistory.paidAmount).toLocaleString()}`, color: '#10b981' },
+                                {
+                                    label: 'Balance',
+                                    value: `₹${Math.max(0, Number(selectedRenterForHistory.rentAmount) - Number(selectedRenterForHistory.paidAmount)).toLocaleString()}`,
+                                    color: (selectedRenterForHistory.rentAmount - selectedRenterForHistory.paidAmount) > 0 ? '#ef4444' : '#10b981'
+                                }
+                            ].map((row, i, arr) => (
+                                <div key={row.label} style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
+                                    padding: '14px 20px',
+                                    borderBottom: i < arr.length - 1 ? '1px solid #e2e8f0' : 'none',
+                                    background: i === arr.length - 1 ? '#f1f5f9' : 'transparent'
+                                }}>
+                                    <span style={{ fontSize: '13px', color: '#64748b', fontWeight: '500' }}>{row.label}</span>
+                                    <strong style={{ fontSize: '15px', color: row.color, fontWeight: '700' }}>{row.value}</strong>
+                                </div>
+                            ))}
                         </div>
+
 
                         <div style={{ marginBottom: '15px' }}>
                             <h4 style={{ fontSize: '14px', fontWeight: '600', marginBottom: '10px' }}>Transaction History</h4>

@@ -1,0 +1,139 @@
+.review-section {
+    padding: 40px 0 0;
+    width: 100%;
+    background: white;
+    overflow: hidden;
+}
+
+.review-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.review-header h2 {
+    font-size: 32px;
+    font-weight: 850;
+    color: var(--secondary);
+    margin-bottom: 12px;
+}
+
+.review-header h2 span {
+    color: var(--primary);
+}
+
+.review-header p {
+    color: var(--text-muted);
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.marquee-wrapper {
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+.marquee-content {
+    display: flex;
+    gap: 32px;
+    width: fit-content;
+    padding: 20px 0 40px;
+    animation: marquee 40s linear infinite;
+}
+
+.marquee-wrapper::before,
+.marquee-wrapper::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 15vw;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.marquee-wrapper::before {
+    left: 0;
+    background: linear-gradient(to right, white, transparent);
+}
+
+.marquee-wrapper::after {
+    right: 0;
+    background: linear-gradient(to left, white, transparent);
+}
+
+.review-card-item {
+    width: 320px;
+    padding: 32px;
+    flex-shrink: 0;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.review-card-item:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.1);
+}
+
+.rev-quote-icon {
+    position: absolute;
+    top: 24px;
+    right: 24px;
+    color: var(--primary);
+    opacity: 0.15;
+}
+
+.rev-rating {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 20px;
+}
+
+.rev-text {
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--text-main);
+    font-weight: 600;
+    margin-bottom: 24px;
+    font-style: italic;
+}
+
+.rev-user {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.rev-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #f1f5f9;
+}
+
+.rev-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.rev-info strong {
+    font-size: 14px;
+    color: var(--secondary);
+    font-weight: 800;
+}
+
+.rev-info span {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 700;
+}
+
+@keyframes marquee {
+    0% {
+        transform: translateX(0);
+    }
+
+    100% {
+        transform: translateX(-50%);
+    }
+}

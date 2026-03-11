@@ -17,7 +17,8 @@ import {
     MessageSquare,
     Send,
     Bell,
-    X
+    X,
+    SlidersHorizontal
 } from 'lucide-react';
 import { auth, db } from '../firebase';
 import {
@@ -62,22 +63,16 @@ const Explore = () => {
         bhk: 'All',
         sharing: 'All',
         priceRange: 200000,
-        location: ''
+        location: '',
+        gender: 'All',
+        furnishing: 'All',
+        amenities: []
     });
 
     useEffect(() => {
-        // Portal-aware interaction logic: Click-outside is handled by the overlay backdrop
-        // This effect can be empty or removed if no other refs need outside-click handling
-    }, []);
-
-    useEffect(() => {
         const handleOpenProperty = (e) => {
-            if (e.detail?.postType === 'roommate') return; // Don't open modal for roommate posts
-            if (auth.currentUser) {
-                setSelectedProperty(e.detail);
-            } else {
-                setBridgeProperty(e.detail);
-            }
+            if (auth.currentUser) setSelectedProperty(e.detail);
+            else setBridgeProperty(e.detail);
         };
         window.addEventListener('openProperty', handleOpenProperty);
         return () => window.removeEventListener('openProperty', handleOpenProperty);
@@ -96,7 +91,6 @@ const Explore = () => {
                 setLoading(false);
             }
         };
-
         fetchInitialPosts();
 
         let unsubscribeFavs = () => { };
@@ -106,10 +100,7 @@ const Explore = () => {
                 setUserFavorites(favIds);
             });
         }
-
-        return () => {
-            unsubscribeFavs();
-        };
+        return () => unsubscribeFavs();
     }, []);
 
     const handleLoadMore = async () => {
@@ -117,69 +108,30 @@ const Explore = () => {
         setIsMoreLoading(true);
         try {
             const { posts, lastVisible: last } = await getPostsPaginated(lastVisible, 12);
-            if (posts.length === 0) {
-                setHasMore(false);
-            } else {
+            if (posts.length === 0) setHasMore(false);
+            else {
                 setProperties(prev => [...prev, ...posts]);
                 setLastVisible(last);
                 if (posts.length < 12) setHasMore(false);
             }
-        } catch (error) {
-            console.error("Load More Error:", error);
-        } finally {
-            setIsMoreLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        if (activeChat) {
-            const unsubscribe = subscribeToMessages(activeChat, (data) => {
-                setMessages(data);
-            });
-            return () => unsubscribe();
-        }
-    }, [activeChat]);
-
-    const handleStartChat = async (targetUserId, targetUserName) => {
-        if (!auth.currentUser) {
-            navigate('/auth');
-            return;
-        }
-        try {
-            const chatId = await findOrCreateChat(auth.currentUser.uid, targetUserId);
-            setActiveChat(chatId);
-            setIsChatOpen(true);
-        } catch (error) {
-            console.error("Error starting chat:", error);
-        }
-    };
-
-    const handleSendMessage = async (e) => {
-        e.preventDefault();
-        if (!newMessage.trim() || !activeChat) return;
-        try {
-            await sendMessage(activeChat, {
-                text: newMessage,
-                senderId: auth.currentUser.uid,
-                participants: activeChat.split('_')
-            });
-            setNewMessage('');
-        } catch (error) {
-            console.error("Error sending message:", error);
-        }
+        } catch (error) { console.error("Load More Error:", error); }
+        finally { setIsMoreLoading(false); }
     };
 
     const handleToggleFavorite = async (e, prop) => {
         e.stopPropagation();
-        if (!auth.currentUser) {
-            navigate('/auth');
-            return;
-        }
+        if (!auth.currentUser) return navigate('/auth');
+        try { await toggleFavorite(auth.currentUser.uid, prop); }
+        catch (error) { console.error("Error toggling favorite:", error); }
+    };
+
+    const handleStartChat = async (targetUserId, targetUserName) => {
+        if (!auth.currentUser) return navigate('/auth');
         try {
-            await toggleFavorite(auth.currentUser.uid, prop);
-        } catch (error) {
-            console.error("Error toggling favorite:", error);
-        }
+            const chatId = await findOrCreateChat(auth.currentUser.uid, targetUserId);
+            setActiveChat(chatId);
+            setIsChatOpen(true);
+        } catch (error) { console.error("Error starting chat:", error); }
     };
 
     const categories = [
@@ -187,276 +139,218 @@ const Explore = () => {
         { name: 'Apartment', icon: <Building2 size={18} /> },
         { name: 'PG', icon: <Hotel size={18} /> },
         { name: 'Rooms', icon: <Home size={18} /> },
-        { name: 'Co-Living', icon: <Navigation size={18} /> },
         { name: 'Roommate Matching', icon: <Users size={18} /> },
     ];
 
+    const getFilterSummary = () => {
+        if (activeCategory === 'All' && filterConfig.bhk === 'All' && filterConfig.sharing === 'All' && filterConfig.priceRange >= 200000 && !filterConfig.location) {
+            return 'Filter Protocol';
+        }
+        const parts = [];
+        if (activeCategory !== 'All') parts.push(activeCategory);
+        if (filterConfig.bhk !== 'All') parts.push(filterConfig.bhk);
+        if (filterConfig.priceRange < 200000) parts.push(`₹${(filterConfig.priceRange / 1000).toFixed(0)}k`);
+        return parts.join(' • ');
+    };
+
+    const handleLocate = () => {
+        if (!navigator.geolocation) return alert("Geolocation not supported.");
+        setIsLocating(true);
+        navigator.geolocation.getCurrentPosition(
+            async (pos) => {
+                const { latitude, longitude } = pos.coords;
+                setUserLocation({ lat: latitude, lng: longitude });
+                setIsDistanceFilterActive(true);
+                setIsLocating(false);
+            },
+            () => { setIsLocating(false); alert("Unable to get location."); },
+            { enableHighAccuracy: true, timeout: 5000 }
+        );
+    };
+
     const getDistance = (lat1, lon1, lat2, lon2) => {
-        const R = 6371; // Radius of the earth in km
+        const R = 6371;
         const dLat = (lat2 - lat1) * Math.PI / 180;
         const dLon = (lon2 - lon1) * Math.PI / 180;
-        const a =
-            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-            Math.sin(dLon / 2) * Math.sin(dLon / 2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return R * c;
+        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     };
 
     const extractCoords = (url) => {
         if (!url || typeof url !== 'string') return null;
-        const patterns = [
-            /@(-?\d+\.\d+),(-?\d+\.\d+)/,
-            /(?:search|place|dir)\/(-?\d+\.\d+)(?:,\s*|\+|,)(-?\d+\.\d+)/,
-            /q=(-?\d+\.\d+)(?:,\s*|\+|,)(-?\d+\.\d+)/
-        ];
-        for (const pattern of patterns) {
-            const match = url.match(pattern);
-            if (match) return { lat: parseFloat(match[1]), lng: parseFloat(match[2]) };
-        }
-        return null;
+        const match = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+        return match ? { lat: parseFloat(match[1]), lng: parseFloat(match[2]) } : null;
     };
 
-    const handleLocate = () => {
-        if (!navigator.geolocation) {
-            alert("Geolocation is not supported by your browser.");
-            return;
-        }
+    // Hero Slider State
+    const [bgIndex, setBgIndex] = useState(0);
+    const heroImages = [
+        'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1600&q=80',
+        'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1600&q=80',
+        'https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=1600&q=80',
+        'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=1600&q=80',
+        'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=1600&q=80'
+    ];
 
-        setIsLocating(true);
-        navigator.geolocation.getCurrentPosition(
-            async (position) => {
-                const { latitude, longitude } = position.coords;
-                setUserLocation({
-                    lat: latitude,
-                    lng: longitude
-                });
-                setIsDistanceFilterActive(true);
-
-                // Reverse geocoding to get location name for search bar
-                try {
-                    const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1`);
-                    const data = await response.json();
-                    if (data && data.address) {
-                        const city = data.address.city || data.address.town || data.address.village || data.address.suburb || '';
-                        const area = data.address.sublocality || data.address.neighbourhood || '';
-                        const locationName = area ? `${area}, ${city}` : city;
-                        if (locationName) setSearchTerm(locationName);
-                    }
-                } catch (error) {
-                    console.error("Reverse geocoding error:", error);
-                }
-
-                setIsLocating(false);
-            },
-            (error) => {
-                console.error("Error getting location:", error);
-                alert("Unable to retrieve your location. Please check permissions.");
-                setIsLocating(false);
-            },
-            { enableHighAccuracy: true, timeout: 10000 }
-        );
-    };
-
-    // Helper to generate smart filter summary
-    const getFilterSummary = () => {
-        if (activeCategory === 'All' && filterConfig.bhk === 'All' && filterConfig.sharing === 'All' && filterConfig.priceRange >= 200000 && !filterConfig.location) {
-            return 'Scanning All Sectors';
-        }
-
-        const parts = [];
-        if (activeCategory !== 'All') parts.push(activeCategory);
-        if (filterConfig.bhk !== 'All') parts.push(filterConfig.bhk);
-        if (filterConfig.sharing !== 'All') parts.push(filterConfig.sharing);
-        if (filterConfig.priceRange < 200000) parts.push(`Upto ₹${(filterConfig.priceRange / 1000).toFixed(0)}k`);
-        if (filterConfig.location) parts.push(filterConfig.location);
-
-        return parts.join(' • ');
-    };
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setBgIndex(prev => (prev + 1) % heroImages.length);
+        }, 5000);
+        return () => clearInterval(timer);
+    }, []);
 
     const filteredProperties = properties.filter(item => {
         const matchesCategory = activeCategory === 'All' ||
-            (activeCategory === 'Rooms' ? (item.type === 'Room' || item.propertyType === 'Room') :
-                activeCategory === 'Roommate Matching' ? (item.postType === 'roommate' || item.type === 'Roommate Matching') :
-                    item.type?.toLowerCase().includes(activeCategory.toLowerCase()));
-
-        const matchesSearch = (item.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-            (item.location || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-            (item.userName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-            (item.propertyName || '').toLowerCase().includes(searchTerm.toLowerCase());
+            (activeCategory === 'Roommate Matching' && item.postType === 'roommate') ||
+            (activeCategory !== 'Roommate Matching' && item.type?.toLowerCase().includes(activeCategory.toLowerCase())) ||
+            (activeCategory === 'Rooms' && item.propertyType === 'Room');
+        const matchesSearch = (item.name || item.propertyName || '').toLowerCase().includes(searchTerm.toLowerCase()) || (item.location || '').toLowerCase().includes(searchTerm.toLowerCase());
 
         let matchesDistance = true;
         if (isDistanceFilterActive && userLocation) {
-            const propertyCoords = item.latitude && item.longitude
-                ? { lat: item.latitude, lng: item.longitude }
-                : extractCoords(item.googleMapsLink || item.locationLink);
-
-            if (propertyCoords) {
-                const distance = getDistance(
-                    userLocation.lat,
-                    userLocation.lng,
-                    propertyCoords.lat,
-                    propertyCoords.lng
-                );
-                matchesDistance = distance <= 20; // 20km radius
-            } else {
-                matchesDistance = false;
-            }
+            const propertyCoords = item.latitude && item.longitude ? { lat: item.latitude, lng: item.longitude } : extractCoords(item.locationLink);
+            if (propertyCoords) matchesDistance = getDistance(userLocation.lat, userLocation.lng, propertyCoords.lat, propertyCoords.lng) <= 15;
+            else matchesDistance = false;
         }
 
-        const itemBHKInfo = (item.bhk || item.flatType || item.unitType || (item.roomType && !String(item.roomType).toLowerCase().includes('sharing') ? item.roomType : '') || '').toString().toLowerCase();
-        const filterBHKDigit = filterConfig.bhk.charAt(0).toLowerCase();
-        const matchesBHK = filterConfig.bhk === 'All' || itemBHKInfo.includes(filterBHKDigit);
+        const rawPrice = item.dailyRent || item.monthlyRent || item.rent || item.price || 0;
+        const numericPrice = typeof rawPrice === 'string' ? parseInt(rawPrice.replace(/[^0-9]/g, '')) : rawPrice;
+        const matchesPrice = !numericPrice || numericPrice <= filterConfig.priceRange;
 
-        const itemSharingInfo = (item.sharing || item.sharingType || (item.roomType && String(item.roomType).toLowerCase().includes('sharing') ? item.roomType : '') || '').toString().toLowerCase();
-        const filterSharingDigit = filterConfig.sharing.charAt(0).toLowerCase();
-        const matchesSharing = filterConfig.sharing === 'All' || itemSharingInfo.includes(filterSharingDigit);
+        const matchesBHK = filterConfig.bhk === 'All' ||
+            (item.bhkType || item.unitType || '').toLowerCase().includes(filterConfig.bhk.toLowerCase());
 
-        // Robust price parsing including dailyRent
-        const rawPrice = item.dailyRent || item.monthlyRent || item.rent || item.price || '0';
-        const numericPrice = parseInt(rawPrice.toString().replace(/[^0-9]/g, '')) || 0;
-        const matchesPrice = numericPrice <= filterConfig.priceRange;
+        const matchesSharing = filterConfig.sharing === 'All' ||
+            (item.roomType || item.sharingType || '').toLowerCase().includes(filterConfig.sharing.toLowerCase());
 
-        const matchesLocationFilter = !filterConfig.location ||
-            (item.location || '').toLowerCase().includes(filterConfig.location.toLowerCase());
+        const matchesGender = filterConfig.gender === 'All' ||
+            (item.gender || item.preference || '').toLowerCase().includes(filterConfig.gender.toLowerCase());
 
-        return matchesCategory && matchesSearch && matchesDistance && matchesBHK && matchesSharing && matchesPrice && matchesLocationFilter;
+        const matchesFurnishing = filterConfig.furnishing === 'All' ||
+            (item.furnishing || '').toLowerCase().includes(filterConfig.furnishing.toLowerCase());
+
+        const matchesAmenities = filterConfig.amenities.length === 0 ||
+            filterConfig.amenities.every(amenity =>
+                (item.amenities || []).toString().toLowerCase().includes(amenity.toLowerCase())
+            );
+
+        const isOwnPost = auth.currentUser && item.userId === auth.currentUser.uid;
+
+        return !isOwnPost && matchesCategory && matchesSearch && matchesDistance && matchesPrice &&
+            matchesBHK && matchesSharing && matchesGender && matchesFurnishing && matchesAmenities;
     });
 
     return (
-        <div className="ex-root">
-            {/* Mobile Branding Header */}
-            <div className="ex-mobile-header">
-                <img src="/logo.svg" alt="StayZen" />
-                <span>Stay<span>Zen</span></span>
-            </div>
-
-            {/* Cinematic Hero Section */}
-            <section className="ex-hero-panel">
-                <div className="ex-hero-bg"></div>
-                <div className="ex-hero-content">
+        <div className="ex-main-container fade-up">
+            {/* Dynamic Hero Section */}
+            <section className="ex-search-hero">
+                <AnimatePresence>
                     <motion.div
-                        className="ex-status-pill"
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                    >
-                        <ShieldCheck size={14} />
-                        <span>Verified Eco-system Presence</span>
-                    </motion.div>
-
-                    <motion.h1
-                        className="ex-hero-title"
-                        initial={{ opacity: 0, y: 30 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.1, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                    >
-                        High-Performance <br />
-                        <span className="ex-gradient-glow">Living Ecosystems.</span>
-                    </motion.h1>
-
-                    <motion.p
-                        className="ex-hero-subtitle"
+                        key={bgIndex}
+                        className="hero-bg-layer"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        transition={{ delay: 0.3 }}
-                    >
-                        Discover high-performance living spaces with verified credentials and seamless integration.
-                    </motion.p>
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 1 }}
+                        style={{ backgroundImage: `url(${heroImages[bgIndex]})` }}
+                    />
+                </AnimatePresence>
+                <div className="hero-overlay"></div>
 
-                    <motion.div
-                        className="ex-search-console"
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.4, type: "spring", stiffness: 100 }}
+                <div className="hero-text-content">
+                    <motion.h1
+                        className="heading-l"
+                        initial={{ y: 20, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        transition={{ delay: 0.2 }}
                     >
-                        <div className="ex-console-group">
-                            <label><Search size={14} /> Global Search</label>
+                        Find your <span className="gradient-glow">perfect home</span>
+                    </motion.h1>
+                    <motion.p
+                        className="hero-sub"
+                        initial={{ y: 20, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        transition={{ delay: 0.4 }}
+                    >
+                        Discover verified rooms, PGs and apartments at best prices.
+                    </motion.p>
+                </div>
+
+                <div className="hq-mobile-search-wrapper">
+                    <div className="hq-search-row">
+                        <div className="search-input-group">
+                            <Search size={18} className="search-icon" />
                             <input
                                 type="text"
-                                placeholder="Search by city, area or sector..."
+                                placeholder="Where would you like to live?"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
                         </div>
-                        <div className="ex-console-divider"></div>
-                        <div
-                            className="ex-console-group clickable"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                setIsFilterOpen(!isFilterOpen);
-                            }}
-                            ref={filterRef}
-                            style={{ position: 'relative' }}
-                        >
-                            <label><Filter size={14} /> Active Protocol</label>
-                            <div className="ex-select-vial">
-                                <span className="ex-summary-text">{getFilterSummary()}</span>
-                                <ChevronRight
-                                    size={14}
-                                    className={`ex-chevron ${isFilterOpen ? 'rotating' : ''}`}
-                                    style={{ transform: isFilterOpen ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.3s' }}
-                                />
-                            </div>
-                        </div>
-                        <button
-                            className={`ex-search-btn ${isLocating ? 'locating' : ''} ${isDistanceFilterActive ? 'active' : ''}`}
-                            onClick={handleLocate}
-                            disabled={isLocating}
-                        >
-                            <Compass size={20} className={isLocating ? "ex-spin" : "ex-spin-slow"} />
-                            <span>{isLocating ? 'Locating...' : isDistanceFilterActive ? 'Near Me' : 'Locate'}</span>
+                        <button className="mobile-filter-btn" onClick={() => setIsFilterOpen(true)}>
+                            <SlidersHorizontal size={20} />
                         </button>
-                    </motion.div>
+                    </div>
+                    <button className="mobile-search-action-btn" onClick={() => {/* Search trigger if needed */ }}>
+                        Search
+                    </button>
+                </div>
+
+                {/* Desktop Search Bar (Hidden on Mobile) */}
+                <div className="hq-search-bar glass-card desktop-only">
+                    <div className="search-sec">
+                        <Search size={18} className="icon" />
+                        <input
+                            type="text"
+                            placeholder="Where would you like to live?"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+                    <div className="divider"></div>
+                    <div className="filter-sec" onClick={() => setIsFilterOpen(true)}>
+                        <SlidersHorizontal size={18} className="icon" />
+                        <span>Filter</span>
+                    </div>
+                    <button
+                        className={`locate-btn ${isDistanceFilterActive ? 'active' : ''}`}
+                        onClick={handleLocate}
+                        disabled={isLocating}
+                    >
+                        <Navigation size={18} className={isLocating ? 'spin' : ''} />
+                    </button>
+                </div>
+
+                {/* Categories inside Hero */}
+                <div className="hero-categories">
+                    <div className="category-scroll">
+                        {categories.map((cat, i) => (
+                            <button
+                                key={i}
+                                className={`cat-item ${activeCategory === cat.name ? 'active' : ''}`}
+                                onClick={() => setActiveCategory(cat.name)}
+                            >
+                                <span className="icon">{cat.icon}</span>
+                                <span className="label">{cat.name}</span>
+                            </button>
+                        ))}
+                    </div>
                 </div>
             </section>
 
-            {/* Smart Categories */}
-            <div className="ex-cat-section">
-                <div className="ex-cat-bar">
-                    {categories.map((cat, i) => (
-                        <button
-                            key={i}
-                            className={`ex-cat-pill ${activeCategory === cat.name ? 'active' : ''}`}
-                            onClick={() => setActiveCategory(cat.name)}
-                        >
-                            <span className="ex-cat-icon">{cat.icon}</span>
-                            <span className="ex-cat-text">{cat.name}</span>
-                        </button>
-                    ))}
+            {/* Property Display Grid */}
+            <section className="ex-property-manifest">
+                <div className="ex-section-header">
+                    <div className="header-text">
+                        <h2>Recommended for you</h2>
+                        <p>{filteredProperties.length} Properties found</p>
+                    </div>
                 </div>
-            </div>
-
-            {/* Manifest Grid */}
-            <section className="ex-manifest">
-                <div className="ex-manifest-header" style={{ justifyContent: 'flex-end', marginBottom: '16px' }}>
-
-                    {(searchTerm || activeCategory !== 'All' || isDistanceFilterActive) && (
-                        <motion.div
-                            className="ex-header-actions"
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                        >
-                            <button
-                                className="ex-clear-filter-btn"
-                                onClick={() => {
-                                    setSearchTerm('');
-                                    setActiveCategory('All');
-                                    setIsDistanceFilterActive(false);
-                                    setUserLocation(null);
-                                }}
-                            >
-                                <Filter size={14} />
-                                <span>Clear Filters</span>
-                            </button>
-                        </motion.div>
-                    )}
-                </div>
-
-                <div className="ex-grid-view">
+                <div className="manifest-grid">
                     <AnimatePresence mode='popLayout'>
                         {loading ? (
-                            Array(4).fill(0).map((_, i) => (
-                                <div key={i} className="ex-skeleton card"></div>
+                            Array(8).fill(0).map((_, i) => (
+                                <div key={i} className="skeleton-card glass-card"></div>
                             ))
                         ) : filteredProperties.length > 0 ? (
                             filteredProperties.map((prop) => (
@@ -469,11 +363,11 @@ const Explore = () => {
                                 />
                             ))
                         ) : (
-                            <div className="ex-empty-state">
-                                <SearchX size={64} className="ex-empty-icon" />
-                                <h3>No Data Response</h3>
-                                <p>The current search parameters yielded zero matches in our cloud. Adjust your filters or location scan.</p>
-                                <button className="ex-reset-btn" onClick={() => { setSearchTerm(''); setActiveCategory('All'); setIsDistanceFilterActive(false); setUserLocation(null); }}>
+                            <div className="empty-state">
+                                <SearchX size={64} />
+                                <h3>No properties found</h3>
+                                <p>Try adjusting your filters or search area.</p>
+                                <button className="premium-btn" onClick={() => { setSearchTerm(''); setActiveCategory('All'); setIsDistanceFilterActive(false); }}>
                                     Reset Scan
                                 </button>
                             </div>
@@ -482,94 +376,139 @@ const Explore = () => {
                 </div>
 
                 {hasMore && filteredProperties.length > 0 && (
-                    <div className="ex-load-more-container">
-                        <button
-                            className={`ex-load-more-btn ${isMoreLoading ? 'loading' : ''}`}
-                            onClick={handleLoadMore}
-                            disabled={isMoreLoading}
-                        >
-                            {isMoreLoading ? (
-                                <>
-                                    <div className="mini-loader"></div>
-                                    <span>Syncing Data Batch...</span>
-                                </>
-                            ) : (
-                                <>
-                                    <span>Explore More Sectors</span>
-                                    <ArrowRight size={18} />
-                                </>
-                            )}
+                    <div className="load-more-vial">
+                        <button className="premium-btn" onClick={handleLoadMore} disabled={isMoreLoading}>
+                            {isMoreLoading ? 'Syncing...' : 'Load More Experiences'}
                         </button>
                     </div>
                 )}
             </section>
 
-            <AnimatePresence>
-                {bridgeProperty && (
-                    <motion.div
-                        className="ex-bridge-overlay"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        onClick={() => setBridgeProperty(null)}
-                    >
+            {/* Filter Overlay Portal */}
+            {createPortal(
+                <AnimatePresence>
+                    {isFilterOpen && (
                         <motion.div
-                            className="ex-bridge-content"
-                            initial={{ scale: 0.9, opacity: 0, y: 20 }}
-                            animate={{ scale: 1, opacity: 1, y: 0 }}
-                            exit={{ scale: 0.9, opacity: 0, y: 20 }}
-                            onClick={(e) => e.stopPropagation()}
+                            className="hq-overlay"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setIsFilterOpen(false)}
                         >
-                            <div className="ex-bridge-header">
-                                <div className="ex-status-pill">
-                                    <Sparkles size={12} />
-                                    <span>Access Protocol</span>
+                            <motion.div
+                                className="hq-popover glass-card"
+                                initial={{ scale: 0.95, y: 20 }}
+                                animate={{ scale: 1, y: 0 }}
+                                exit={{ scale: 0.95, y: 20 }}
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                <div className="pop-header">
+                                    <h3>Advanced Protocol</h3>
+                                    <button onClick={() => setIsFilterOpen(false)}><X size={20} /></button>
                                 </div>
-                                <h2>How to proceed?</h2>
-                                <p>Continue to <b>{bridgeProperty.name}</b> details through your preferred gateway.</p>
-                            </div>
+                                <div className="pop-body">
+                                    <div className="filter-group">
+                                        <label>Budget Parameter</label>
+                                        <div className="range-vial">
+                                            <span>₹{(filterConfig.priceRange).toLocaleString()}</span>
+                                            <input
+                                                type="range"
+                                                min="5000" max="200000" step="1000"
+                                                value={filterConfig.priceRange}
+                                                onChange={(e) => setFilterConfig({ ...filterConfig, priceRange: parseInt(e.target.value) })}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="filter-group">
+                                        <label>Configuration</label>
+                                        <div className="grid-options three-cols">
+                                            {['All', '1 BHK', '2 BHK', '3 BHK', '4 BHK'].map(b => (
+                                                <button
+                                                    key={b}
+                                                    className={filterConfig.bhk === b ? 'active' : ''}
+                                                    onClick={() => setFilterConfig({ ...filterConfig, bhk: b })}
+                                                >{b}</button>
+                                            ))}
+                                        </div>
+                                    </div>
 
-                            <div className="ex-bridge-options">
-                                <button className="ex-bridge-btn app" onClick={() => {
-                                    window.open('https://play.google.com/store/games', '_blank');
-                                    setBridgeProperty(null);
-                                }}>
-                                    <div className="btn-icon">
-                                        <img src="https://cdn-icons-png.flaticon.com/512/888/888857.png" alt="Play Store" />
+                                    <div className="filter-group">
+                                        <label>Sharing Format</label>
+                                        <div className="grid-options three-cols">
+                                            {['All', 'Private', '2 Sharing', '3 Sharing', '4 Sharing'].map(s => (
+                                                <button
+                                                    key={s}
+                                                    className={filterConfig.sharing === s ? 'active' : ''}
+                                                    onClick={() => setFilterConfig({ ...filterConfig, sharing: s })}
+                                                >{s}</button>
+                                            ))}
+                                        </div>
                                     </div>
-                                    <div className="btn-text">
-                                        <span className="btn-label">Optimized Experience</span>
-                                        <span className="btn-main">Continue with App</span>
-                                    </div>
-                                    <ChevronRight size={18} />
-                                </button>
 
-                                <button className="ex-bridge-btn browser" onClick={() => {
-                                    if (!auth.currentUser) {
-                                        navigate('/auth');
-                                        return;
-                                    }
-                                    setSelectedProperty(bridgeProperty);
-                                    setBridgeProperty(null);
-                                }}>
-                                    <div className="btn-icon">
-                                        <Compass size={24} />
+                                    <div className="filter-group">
+                                        <label>Gender Preference</label>
+                                        <div className="grid-options three-cols">
+                                            {['All', 'Boys', 'Girls', 'Co-living'].map(g => (
+                                                <button
+                                                    key={g}
+                                                    className={filterConfig.gender === g ? 'active' : ''}
+                                                    onClick={() => setFilterConfig({ ...filterConfig, gender: g })}
+                                                >{g}</button>
+                                            ))}
+                                        </div>
                                     </div>
-                                    <div className="btn-text">
-                                        <span className="btn-label">Native Web</span>
-                                        <span className="btn-main">Continue with Browser</span>
-                                    </div>
-                                    <ArrowRight size={18} />
-                                </button>
-                            </div>
 
-                            <button className="ex-bridge-cancel" onClick={() => setBridgeProperty(null)}>
-                                Dismiss Scan
-                            </button>
+                                    <div className="filter-group">
+                                        <label>Furnishing Tier</label>
+                                        <div className="grid-options three-cols">
+                                            {['All', 'Fully', 'Semi', 'Unfurnished'].map(f => (
+                                                <button
+                                                    key={f}
+                                                    className={filterConfig.furnishing === f ? 'active' : ''}
+                                                    onClick={() => setFilterConfig({ ...filterConfig, furnishing: f })}
+                                                >{f}</button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="filter-group">
+                                        <label>Amenities Protocol</label>
+                                        <div className="grid-options three-cols">
+                                            {['WiFi', 'AC', 'Parking', 'Gym', 'Geyser', 'Power Backup', 'Food'].map(a => (
+                                                <button
+                                                    key={a}
+                                                    className={filterConfig.amenities.includes(a) ? 'active' : ''}
+                                                    onClick={() => {
+                                                        const newAmenities = filterConfig.amenities.includes(a)
+                                                            ? filterConfig.amenities.filter(item => item !== a)
+                                                            : [...filterConfig.amenities, a];
+                                                        setFilterConfig({ ...filterConfig, amenities: newAmenities });
+                                                    }}
+                                                >{a}</button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="pop-footer">
+                                    <div className="protocol-actions">
+                                        <button className="reset-link" onClick={() => setFilterConfig({
+                                            bhk: 'All',
+                                            sharing: 'All',
+                                            priceRange: 200000,
+                                            location: '',
+                                            gender: 'All',
+                                            furnishing: 'All',
+                                            amenities: []
+                                        })}>Reset Protocol</button>
+                                        <button className="premium-btn" onClick={() => setIsFilterOpen(false)}>Engage Protocol</button>
+                                    </div>
+                                </div>
+                            </motion.div>
                         </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+                    )}
+                </AnimatePresence>,
+                document.body
+            )}
 
             <AnimatePresence>
                 {selectedProperty && (
@@ -579,148 +518,6 @@ const Explore = () => {
                     />
                 )}
             </AnimatePresence>
-
-            {/* Chat Overlay for Explore */}
-            <AnimatePresence>
-                {isChatOpen && (
-                    <motion.div
-                        className="ex-chat-window glass-panel"
-                        initial={{ y: 100, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        exit={{ y: 100, opacity: 0 }}
-                    >
-                        <div className="ex-chat-header">
-                            <div className="ex-chat-user">
-                                <MessageSquare size={18} />
-                                <span>Roommate Protocol</span>
-                            </div>
-                            <button onClick={() => setIsChatOpen(false)}>
-                                <X size={20} />
-                            </button>
-                        </div>
-                        <div className="ex-messages">
-                            {messages.map((msg, i) => (
-                                <div key={i} className={`ex-msg ${msg.senderId === auth?.currentUser?.uid ? 'sent' : 'received'}`}>
-                                    <div className="ex-msg-bubble">
-                                        {msg.text}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                        <form onSubmit={handleSendMessage} className="ex-chat-input">
-                            <input
-                                type="text"
-                                placeholder="Type a message..."
-                                value={newMessage}
-                                onChange={(e) => setNewMessage(e.target.value)}
-                            />
-                            <button type="submit">
-                                <Send size={18} />
-                            </button>
-                        </form>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-
-            {/* Global Portal-based Filter Protocol */}
-            {createPortal(
-                <AnimatePresence>
-                    {isFilterOpen && (
-                        <motion.div
-                            key="ex-filter-portal"
-                            className="ex-filter-overlay"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            onClick={() => setIsFilterOpen(false)}
-                        >
-                            <motion.div
-                                className="ex-filter-popover glass-panel"
-                                initial={{ opacity: 0, scale: 0.9, y: 30 }}
-                                animate={{ opacity: 1, scale: 1, y: 0 }}
-                                exit={{ opacity: 0, scale: 0.9, y: 30 }}
-                                transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                                onClick={(e) => e.stopPropagation()}
-                            >
-                                <div className="ex-popover-scroll">
-                                    <div className="ex-filter-section">
-                                        <label>Sector Location</label>
-                                        <div className="ex-input-vial">
-                                            <Navigation size={16} />
-                                            <input
-                                                type="text"
-                                                placeholder="Enter sub-sector..."
-                                                value={filterConfig.location}
-                                                onChange={(e) => setFilterConfig({ ...filterConfig, location: e.target.value })}
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="ex-filter-section">
-                                        <label>Configuration (BHK)</label>
-                                        <div className="ex-option-grid">
-                                            {['All', '1 BHK', '2 BHK', '3 BHK', '4+ BHK'].map(size => (
-                                                <button
-                                                    key={size}
-                                                    className={`ex-option-btn ${filterConfig.bhk === size ? 'active' : ''}`}
-                                                    onClick={() => setFilterConfig({ ...filterConfig, bhk: size })}
-                                                >
-                                                    {size}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    <div className="ex-filter-section">
-                                        <label>Sharing Protocol</label>
-                                        <div className="ex-option-grid">
-                                            {['All', '1x Sharing', '2x Sharing', '3x Sharing'].map(type => (
-                                                <button
-                                                    key={type}
-                                                    className={`ex-option-btn ${filterConfig.sharing === type ? 'active' : ''}`}
-                                                    onClick={() => setFilterConfig({ ...filterConfig, sharing: type })}
-                                                >
-                                                    {type}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    <div className="ex-filter-section">
-                                        <div className="ex-flex-header">
-                                            <label>Budget Parameter</label>
-                                            <span className="ex-value-tag">₹{filterConfig.priceRange.toLocaleString()}</span>
-                                        </div>
-                                        <input
-                                            type="range"
-                                            min="500"
-                                            max="100000"
-                                            step="500"
-                                            className="ex-range-slider"
-                                            value={filterConfig.priceRange}
-                                            onChange={(e) => setFilterConfig({ ...filterConfig, priceRange: parseInt(e.target.value) })}
-                                        />
-                                        <div className="ex-range-labels">
-                                            <span>₹500</span>
-                                            <span>₹100k</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="ex-popover-footer">
-                                    <button className="ex-reset-filters" onClick={() => setFilterConfig({ bhk: 'All', sharing: 'All', priceRange: 100000, location: '' })}>
-                                        Reset
-                                    </button>
-                                    <button className="ex-apply-filters" onClick={() => setIsFilterOpen(false)}>
-                                        Apply Protocol
-                                    </button>
-                                </div>
-                            </motion.div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>,
-                document.body
-            )}
         </div>
     );
 };

@@ -13,7 +13,8 @@ import {
     getDoc,
     limit
 } from "firebase/firestore";
-import { db } from "../firebase";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { db, storage } from "../firebase";
 
 // Collections
 const PROPERTIES_COLLECTION = "properties";
@@ -23,6 +24,45 @@ const PAYMENTS_COLLECTION = "payments";
 const NOTIFICATIONS_COLLECTION = "notifications";
 const USERS_COLLECTION = "users";
 const PROPERTY_EDITS_COLLECTION = "property_edits";
+
+// USERS & PROFILE
+export const getOrCreateManagerProfile = async (user) => {
+    try {
+        console.log("DEBUG: Checking/Creating profile for UID:", user.uid);
+        const userRef = doc(db, USERS_COLLECTION, user.uid);
+        const userSnap = await getDoc(userRef);
+
+        if (!userSnap.exists()) {
+            console.log("DEBUG: No profile found. Creating new Manager profile...");
+            const newProfile = {
+                uid: user.uid,
+                fullName: user.displayName || "Google User",
+                email: user.email,
+                phoneNumber: user.phoneNumber || "",
+                role: 'manager',
+                status: 'Approved',
+                createdAt: new Date().toISOString(),
+                lastLogin: new Date().toISOString()
+            };
+            await setDoc(userRef, newProfile);
+            console.log("DEBUG: New profile created successfully.");
+            return { ...newProfile, isNew: true };
+        } else {
+            console.log("DEBUG: Profile exists. Upgrading/Updating to Approved Manager...");
+            const existingData = userSnap.data();
+            const updateData = {
+                lastLogin: new Date().toISOString(),
+                role: 'manager',
+                status: 'Approved'
+            };
+            await updateDoc(userRef, updateData);
+            return { ...existingData, ...updateData, isNew: false };
+        }
+    } catch (error) {
+        console.error("Error in getOrCreateManagerProfile:", error);
+        throw error;
+    }
+};
 
 /**
  * PROPERTY SERVICES
@@ -68,6 +108,19 @@ export const addProperty = async (propertyData) => {
             status: propertyData.status || "Processing"
         });
 
+        // 🔔 Notify Vendor
+        if (propertyData.ownerId) {
+            await addDoc(collection(db, NOTIFICATIONS_COLLECTION), {
+                type: 'PROPERTY_STATUS',
+                title: 'Property Registered',
+                message: `Your property "${propertyData.name}" is now in the processing stage. We will notify you once it's approved.`,
+                targetId: propertyData.ownerId,
+                propertyId: docRef.id,
+                status: 'unread',
+                createdAt: new Date().toISOString()
+            });
+        }
+
         // 🔔 Notify Admin
         await addDoc(collection(db, NOTIFICATIONS_COLLECTION), {
             type: 'NEW_PROPERTY',
@@ -77,6 +130,24 @@ export const addProperty = async (propertyData) => {
             propertyId: docRef.id,
             status: 'unread',
             createdAt: new Date().toISOString()
+        });
+
+        // 📧 Trigger Email Notification (Requires Firebase "Trigger Email" Extension)
+        await addDoc(collection(db, 'mail'), {
+            to: propertyData.email,
+            message: {
+                subject: `Property Registration: ${propertyData.name} is in Progress`,
+                html: `
+                    <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                        <h2 style="color: #1aa79c;">Hello ${propertyData.manager},</h2>
+                        <p>Your ${propertyData.type} <strong>"${propertyData.name}"</strong> registration has been received successfully.</p>
+                        <p>Your property is currently in the <strong>Processing Stage</strong> and has been sent to the admin for approval.</p>
+                        <p>We will notify you via email once it is approved. Thank you for choosing StayZen!</p>
+                        <br>
+                        <p>Best regards,<br>The StayZen Team</p>
+                    </div>
+                `,
+            }
         });
 
         console.log(`✅ Property and Notification registered: ${docRef.id}`);
@@ -274,10 +345,12 @@ export const deleteRenter = async (renterId) => {
  */
 export const addPost = async (postData) => {
     try {
+        console.log("DEBUG: addPost called with data:", postData);
         const docRef = await addDoc(collection(db, POSTS_COLLECTION), {
             ...postData,
             createdAt: new Date().toISOString()
         });
+        console.log("DEBUG: addPost successful. DocId:", docRef.id);
         return docRef.id;
     } catch (error) {
         console.error("Error adding post: ", error);
@@ -495,23 +568,75 @@ export const subscribeToBookings = (ownerId, callback) => {
         callback([]);
         return () => { };
     }
-    const q = query(
+
+    // Step 1: Listen to bookings with matching ownerId (new bookings, correct flow)
+    const qByOwner = query(
         collection(db, BOOKINGS_COLLECTION),
         where("ownerId", "==", ownerId)
     );
-    return onSnapshot(q,
-        (querySnapshot) => {
-            const bookings = [];
-            querySnapshot.forEach((doc) => {
-                bookings.push({ id: doc.id, ...doc.data() });
-            });
-            callback(bookings);
-        },
-        (error) => {
-            console.error("Bookings Sync Error:", error);
+
+    // Step 2: Also fetch vendor's properties to find bookings linked by propertyId
+    // (handles old bookings where ownerId=null was saved due to missing ownerId in posts)
+    let propertyIds = [];
+    let ownerBookings = [];
+    let propBookings = [];
+
+    const mergeAndReturn = () => {
+        const allIds = new Set();
+        const merged = [];
+        [...ownerBookings, ...propBookings].forEach(b => {
+            if (!allIds.has(b.id)) {
+                allIds.add(b.id);
+                merged.push(b);
+            }
+        });
+        callback(merged);
+    };
+
+    // Subscribe to bookings by ownerId
+    const unsubOwner = onSnapshot(qByOwner, (snap) => {
+        ownerBookings = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        mergeAndReturn();
+    }, (error) => {
+        console.error("Bookings (by ownerId) Sync Error:", error);
+    });
+
+    // Fetch vendor's properties then subscribe to bookings by propertyId
+    let unsubPropBookings = () => { };
+    getDocs(query(collection(db, "properties"), where("ownerId", "==", ownerId))).then(propSnap => {
+        propertyIds = propSnap.docs.map(d => d.id);
+        if (propertyIds.length === 0) return;
+
+        // Firestore 'in' supports max 30 items
+        const chunks = [];
+        for (let i = 0; i < propertyIds.length; i += 30) {
+            chunks.push(propertyIds.slice(i, i + 30));
         }
-    );
+
+        const unsubs = chunks.map(chunk => {
+            const qByProp = query(
+                collection(db, BOOKINGS_COLLECTION),
+                where("propertyId", "in", chunk)
+            );
+            return onSnapshot(qByProp, (snap) => {
+                propBookings = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                mergeAndReturn();
+            }, (error) => {
+                console.error("Bookings (by propertyId) Sync Error:", error);
+            });
+        });
+
+        unsubPropBookings = () => unsubs.forEach(u => u());
+    }).catch(err => {
+        console.error("Could not fetch vendor properties for booking lookup:", err);
+    });
+
+    return () => {
+        unsubOwner();
+        unsubPropBookings();
+    };
 };
+
 
 export const updateBookingStatus = async (bookingId, status, additionalData = {}) => {
     try {
@@ -593,9 +718,64 @@ export const sendNotification = async (notifData) => {
 };
 
 /**
- * IMAGE UTILITIES (Compressed Base64 Method)
- * Automatically resizes and compresses images to fit within Firestore's 1MB limit.
+ * IMAGE UTILITIES (Firebase Storage + Compression)
+ * Automatically resizes, compresses, and uploads images to Firebase Storage.
  */
+export const compressImage = (file) => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (event) => {
+            const img = new Image();
+            img.src = event.target.result;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const MAX_WIDTH = 1200;
+                const MAX_HEIGHT = 1200;
+                let width = img.width;
+                let height = img.height;
+
+                if (width > height) {
+                    if (width > MAX_WIDTH) {
+                        height *= MAX_WIDTH / width;
+                        width = MAX_WIDTH;
+                    }
+                } else {
+                    if (height > MAX_HEIGHT) {
+                        width *= MAX_HEIGHT / height;
+                        height = MAX_HEIGHT;
+                    }
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                canvas.toBlob((blob) => {
+                    resolve(blob);
+                }, 'image/jpeg', 0.8);
+            };
+        };
+        reader.onerror = (error) => reject(error);
+    });
+};
+
+export const uploadImage = async (fileOrBlob, fileName = 'image.jpg', folder = 'posts') => {
+    if (!fileOrBlob) return null;
+    try {
+        const uniqueName = `${Date.now()}_${fileName.replace(/\s+/g, '_')}`;
+        const storageRef = ref(storage, `${folder}/${uniqueName}`);
+        const snapshot = await uploadBytes(storageRef, fileOrBlob);
+        const downloadURL = await getDownloadURL(snapshot.ref);
+        return downloadURL;
+    } catch (error) {
+        console.error("Error uploading image: ", error);
+        throw error;
+    }
+};
+
+// Legacy support (still useful for some cases, but preferred to use uploadImage)
 export const convertToBase64 = (file) => {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -627,7 +807,6 @@ export const convertToBase64 = (file) => {
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, width, height);
 
-                // Compress to JPEG with 0.8 quality
                 const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
                 resolve(dataUrl);
             };

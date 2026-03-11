@@ -157,3 +157,143 @@
     font-weight: 700;
     margin-top: 1rem;
 }
+
+.section-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.section-desc {
+    color: #64748b;
+    font-size: 14px;
+    margin-bottom: 30px;
+}
+
+.commission-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 40px;
+}
+
+.commission-box {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 20px;
+    padding: 24px;
+}
+
+.box-label {
+    font-size: 11px;
+    font-weight: 800;
+    color: #94a3b8;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+}
+
+.perc-input-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: white;
+    border: 1px solid #e2e8f0;
+    padding: 12px 20px;
+    border-radius: 14px;
+}
+
+.perc-input-wrap input {
+    border: none;
+    font-size: 24px;
+    font-weight: 800;
+    color: #1e293b;
+    width: 100%;
+}
+
+.perc-input-wrap input:focus {
+    outline: none;
+}
+
+.helper {
+    display: block;
+    margin-top: 12px;
+    font-size: 12px;
+    color: #64748b;
+    font-weight: 600;
+}
+
+.split-visualizer {
+    margin-bottom: 40px;
+}
+
+.split-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    font-weight: 800;
+    color: #475569;
+    margin-bottom: 12px;
+}
+
+.split-bar-preview {
+    height: 16px;
+    background: #e2e8f0;
+    border-radius: 10px;
+    display: flex;
+    overflow: hidden;
+}
+
+.admin-bar {
+    background: #1aa79c;
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.vendor-bar {
+    background: #e2e8f0;
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.save-settings-btn {
+    width: 100%;
+    padding: 18px;
+    background: #1aa79c;
+    color: white;
+    border: none;
+    border-radius: 16px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.save-settings-btn:hover:not(:disabled) {
+    background: #0d9488;
+    transform: translateY(-2px);
+}
+
+.save-settings-btn:active {
+    transform: translateY(0);
+}
+
+.save-settings-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.spin {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}

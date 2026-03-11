@@ -108,17 +108,17 @@ const HelpCenter = () => {
                 <div className="header-meta">
                     <div className="meta-pill">
                         <LifeBuoy size={14} />
-                        <span>24/7 Global Support</span>
+                        <span>24/7 Support Available</span>
                     </div>
                 </div>
-                <h1 className="intel-help-title">Operational <span className="gradient-glow">Support.</span></h1>
-                <p className="intel-help-subtitle">Search our knowledge base or initiate a direct communication protocol with our team.</p>
+                <h1 className="intel-help-title">Help <span className="gradient-glow">Center.</span></h1>
+                <p className="intel-help-subtitle">Search for answers or talk to our friendly team for any help you need.</p>
 
                 <div className="intel-help-search-box">
                     <Search size={20} className="search-icon" />
                     <input
                         type="text"
-                        placeholder="Search for solutions, documentation, or protocols..."
+                        placeholder="Type your question here (e.g. how to book, payments)..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
@@ -129,7 +129,7 @@ const HelpCenter = () => {
                 <section className="intel-faq-manifest">
                     <div className="manifest-header">
                         <div className="indicator">FAQ</div>
-                        <h2>Knowledge Base</h2>
+                        <h2>Common Questions</h2>
                     </div>
                     <div className="faq-list">
                         {filteredFaqs.length > 0 ? (
@@ -137,7 +137,7 @@ const HelpCenter = () => {
                                 <FAQItem key={i} {...faq} />
                             ))
                         ) : (
-                            <div className="intel-empty-state mini">No documents matched your criteria.</div>
+                            <div className="intel-empty-state mini">Sorry, we couldn't find any answers for that.</div>
                         )}
                     </div>
                 </section>
@@ -148,26 +148,28 @@ const HelpCenter = () => {
                             <div className="icon-vial"><MessageSquareText size={24} /></div>
                             <div className="status-dot"></div>
                         </div>
-                        <h3>Real-time Assistance</h3>
-                        <p>Initiate an encrypted WhatsApp session with our support engineers.</p>
+                        <h3>Chat with Us</h3>
+                        <p>Need a quick answer? Send us a message on WhatsApp.</p>
                         <button className="intel-btn-primary" onClick={handleWhatsAppSupport}>
                             <Zap size={18} />
-                            <span>Start Mission</span>
+                            <span>Chat on WhatsApp</span>
                         </button>
                     </div>
 
                     <div className="intel-contact-group">
                         <div className="intel-contact-item">
-                            <div className="item-icon"><Phone size={18} /></div>
+                            <div className="item-icon"><Phone size={20} /></div>
                             <div className="item-info">
-                                <span>Voice Liaison</span>
-                                <a href={`tel:+${supportInfo.countryCode}${supportInfo.whatsappNumber}`}>+{supportInfo.countryCode} {supportInfo.whatsappNumber}</a>
+                                <label>Call Us Any Time</label>
+                                <a href={`tel:+${supportInfo.countryCode}${supportInfo.whatsappNumber}`}>
+                                    +{supportInfo.countryCode} {supportInfo.whatsappNumber}
+                                </a>
                             </div>
                         </div>
                         <div className="intel-contact-item">
-                            <div className="item-icon"><Mail size={18} /></div>
+                            <div className="item-icon"><Mail size={20} /></div>
                             <div className="item-info">
-                                <span>Digital Correspondence</span>
+                                <label>Email Our Team</label>
                                 <a href={`mailto:${supportInfo.supportEmail}`}>{supportInfo.supportEmail}</a>
                             </div>
                         </div>
@@ -176,9 +178,9 @@ const HelpCenter = () => {
                     <div className="intel-protection-box">
                         <div className="protection-header">
                             <ShieldCheck size={20} className="shield-icon" />
-                            <span>StayZen Protection</span>
+                            <span>StayZen Safe</span>
                         </div>
-                        <p>Every operational stay is protected by our Tier-1 safety guarantee and verified insurance protocols.</p>
+                        <p>Your safety is our priority. Every stay is verified and protected by our insurance policy.</p>
                     </div>
                 </aside>
             </div>

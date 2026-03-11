@@ -2,15 +2,17 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Facebook, Twitter, Instagram, Linkedin, Mail, Phone, MapPin } from 'lucide-react';
 import './Footer.css';
+import logoImg from '../../assets/logo.jpg';
 
 const Footer = () => {
     return (
         <footer className="footer-root">
             <div className="footer-content">
                 <div className="footer-section brand-info">
-                    <div className="footer-brand">
+                    <Link to="/" className="footer-brand">
+                        <img src="/logo.svg" className="footer-logo" alt="StayZen" />
                         <span className="brand-main">Stay<span>Zen</span></span>
-                    </div>
+                    </Link>
                     <p className="footer-desc">
                         Redefining modern living with curated spaces and seamless technology. Your journey to a perfect home starts here.
                     </p>

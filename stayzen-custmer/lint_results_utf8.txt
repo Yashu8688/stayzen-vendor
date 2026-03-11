@@ -1,0 +1,61 @@
+﻿
+C:\Users\yashwanth\Desktop\stayzen-1\stayzen-custmer\src\App.jsx
+   5:27  error  'motion' is defined but never used. Allowed unused vars must match /^[A-Z_]/u             no-unused-vars
+  27:15  error  'visitRef' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\Users\yashwanth\Desktop\stayzen-1\stayzen-custmer\src\components\BookingsPage.jsx
+  257:47  error  'selectedDate' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\Users\yashwanth\Desktop\stayzen-1\stayzen-custmer\src\components\DashboardOverview.jsx
+  134:9   error  'totalUnits' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u   no-unused-vars
+  185:11  error  'getGreeting' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\Users\yashwanth\Desktop\stayzen-1\stayzen-custmer\src\components\Header.jsx
+  18:57  error  'setTab' is defined but never used  no-unused-vars
+
+C:\Users\yashwanth\Desktop\stayzen-1\stayzen-custmer\src\components\LandingPage.jsx
+  2:10  error  'motion' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\Users\yashwanth\Desktop\stayzen-1\stayzen-custmer\src\components\PostsPage.jsx
+   60:12  error  'isUploadingImages' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+   62:12  error  'selectedImages' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u     no-unused-vars
+   74:41  error  'name' is defined but never used                                                                   no-unused-vars
+  151:30  error  'e' is defined but never used                                                                      no-unused-vars
+
+C:\Users\yashwanth\Desktop\stayzen-1\stayzen-custmer\src\components\PropertiesPage.jsx
+   25:12  error    'loading' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                                         no-unused-vars
+   37:12  error    'isRegistering' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                                   no-unused-vars
+   37:27  error    'setIsRegistering' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                                no-unused-vars
+   72:12  error    'isLocationModalOpen' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                             no-unused-vars
+   72:33  error    'setIsLocationModalOpen' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                          no-unused-vars
+  102:8   warning  React Hook React.useEffect has a missing dependency: 'handleCurrentLocation'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  198:12  error    'searchQuery' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                                     no-unused-vars
+  474:18  error    'e' is defined but never used                                                                                                   no-unused-vars
+  474:21  error    Empty block statement                                                                                                           no-empty
+  664:11  error    'handlePincodeLookup' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                             no-unused-vars
+  698:45  error    'name' is defined but never used                                                                                                no-unused-vars
+
+C:\Users\yashwanth\Desktop\stayzen-1\stayzen-custmer\src\components\PropertyRegistrationModal.jsx
+    5:10  error  'auth' is defined but never used. Allowed unused vars must match /^[A-Z_]/u                          no-unused-vars
+   33:67  error  'userId' is defined but never used                                                                   no-unused-vars
+   83:12  error  'isSearchingLocation' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+   84:12  error  'searchResults' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u        no-unused-vars
+   85:11  error  'searchResultRef' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u      no-unused-vars
+  102:11  error  'handlePincodeLookup' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\Users\yashwanth\Desktop\stayzen-1\stayzen-custmer\src\components\RentersPage.jsx
+   9:45   error  'orderBy' is defined but never used. Allowed unused vars must match /^[A-Z_]/u              no-unused-vars
+  10:41   error  'updateRenterPayment' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+  10:84   error  'addPayment' is defined but never used. Allowed unused vars must match /^[A-Z_]/u           no-unused-vars
+  10:133  error  'markRentAsPaid' is defined but never used. Allowed unused vars must match /^[A-Z_]/u       no-unused-vars
+  15:12   error  'loading' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u     no-unused-vars
+
+C:\Users\yashwanth\Desktop\stayzen-1\stayzen-custmer\src\firebase.js
+   3:10  error  'getFirestore' is defined but never used. Allowed unused vars must match /^[A-Z_]/u        no-unused-vars
+  20:7   error  'analytics' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\Users\yashwanth\Desktop\stayzen-1\stayzen-custmer\src\services\dataService.js
+  877:18  error  'e' is defined but never used  no-unused-vars
+
+Γ£û 36 problems (35 errors, 1 warning)
+

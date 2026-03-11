@@ -58,6 +58,41 @@ const formatPost = (doc) => {
         rating: post.rating || '4.8'
     };
 };
+
+const expandPost = (post) => {
+    const isPG = post.propertyType?.toUpperCase().includes('PG') || post.propertyType?.toLowerCase().includes('hostel');
+    const isApartment = post.propertyType === 'Apartment';
+
+    if (isApartment && post.bhkAllocations && post.bhkAllocations.length > 0) {
+        return post.bhkAllocations.map((alloc, idx) => ({
+            ...post,
+            id: `${post.id}-bhk-${idx}`,
+            originalId: post.id,
+            name: `${alloc.bhkType} - ${post.propertyName || post.name}`,
+            rent: alloc.pricePerUnit ? (alloc.pricePerUnit.toString().includes('₹') ? alloc.pricePerUnit : `₹${alloc.pricePerUnit}`) : post.rent,
+            rentType: alloc.rentType,
+            images: (alloc.imageUrls && alloc.imageUrls.length > 0) ? alloc.imageUrls : post.images,
+            unitType: alloc.bhkType,
+            configIndex: idx,
+            configType: 'bhk'
+        }));
+    } else if (isPG && post.roomConfigurations && post.roomConfigurations.length > 0) {
+        return post.roomConfigurations.map((config, idx) => ({
+            ...post,
+            id: `${post.id}-pg-${idx}`,
+            originalId: post.id,
+            name: `${config.type === 'Custom' ? config.customType : config.type} - ${post.propertyName || post.name}`,
+            rent: config.rentAmount ? (config.rentAmount.toString().includes('₹') ? config.rentAmount : `₹${config.rentAmount}`) : post.rent,
+            rentType: config.rentType,
+            images: (config.imageUrls && config.imageUrls.length > 0) ? config.imageUrls : post.images,
+            roomType: config.type === 'Custom' ? config.customType : config.type,
+            configIndex: idx,
+            configType: 'pg'
+        }));
+    }
+    return [{ ...post, originalId: post.id }];
+};
+
 export const subscribeToPosts = (callback, maxLimit = 20) => {
     const q = query(
         collection(db, POSTS_COLLECTION),
@@ -65,8 +100,13 @@ export const subscribeToPosts = (callback, maxLimit = 20) => {
         limit(maxLimit)
     );
     return onSnapshot(q, (snapshot) => {
-        const posts = snapshot.docs.map(doc => formatPost(doc));
-        callback(posts);
+        const allItems = [];
+        snapshot.docs.forEach(doc => {
+            const formatted = formatPost(doc);
+            const expanded = expandPost(formatted);
+            allItems.push(...expanded);
+        });
+        callback(allItems);
     }, (error) => {
         console.error("Posts Sync Error:", error);
     });
@@ -83,7 +123,6 @@ export const getPostsPaginated = async (lastVisible = null, batchSize = 12) => {
                 limit(batchSize)
             );
         } else {
-            // For initial load, don't strictly order if data might be missing createdAt
             q = query(
                 collection(db, POSTS_COLLECTION),
                 limit(batchSize)
@@ -91,19 +130,29 @@ export const getPostsPaginated = async (lastVisible = null, batchSize = 12) => {
         }
 
         const snapshot = await getDocs(q);
-        const posts = snapshot.docs.map(doc => formatPost(doc));
+        const allItems = [];
+        snapshot.docs.forEach(doc => {
+            const formatted = formatPost(doc);
+            const expanded = expandPost(formatted);
+            allItems.push(...expanded);
+        });
+
         return {
-            posts,
+            posts: allItems,
             lastVisible: snapshot.docs[snapshot.docs.length - 1]
         };
     } catch (error) {
         console.error("Pagination Error:", error);
-        // Fallback without ordering
         try {
             const q = query(collection(db, POSTS_COLLECTION), limit(batchSize));
             const snapshot = await getDocs(q);
-            const posts = snapshot.docs.map(doc => formatPost(doc));
-            return { posts, lastVisible: snapshot.docs[snapshot.docs.length - 1] };
+            const allItems = [];
+            snapshot.docs.forEach(doc => {
+                const formatted = formatPost(doc);
+                const expanded = expandPost(formatted);
+                allItems.push(...expanded);
+            });
+            return { posts: allItems, lastVisible: snapshot.docs[snapshot.docs.length - 1] };
         } catch (err) {
             console.error("Critical Fetch Error:", err);
             throw err;
@@ -111,23 +160,100 @@ export const getPostsPaginated = async (lastVisible = null, batchSize = 12) => {
     }
 };
 
+export const getPropertyById = async (id) => {
+    try {
+        // Handle flattened IDs like "postId-bhk-0" or "postId-pg-1"
+        let realId = id;
+        let configIdx = -1;
+        let cType = null;
+
+        if (id.includes('-bhk-')) {
+            const parts = id.split('-bhk-');
+            realId = parts[0];
+            configIdx = parseInt(parts[1]);
+            cType = 'bhk';
+        } else if (id.includes('-pg-')) {
+            const parts = id.split('-pg-');
+            realId = parts[0];
+            configIdx = parseInt(parts[1]);
+            cType = 'pg';
+        }
+
+        const docRef = doc(db, POSTS_COLLECTION, realId);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+            const postData = docSnap.data();
+
+            // 🔑 CRITICAL FIX: If ownerId is missing from the posts doc,
+            // look it up from the properties collection via propertyId
+            let ownerId = postData.ownerId || null;
+            if (!ownerId && postData.propertyId) {
+                try {
+                    const propSnap = await getDoc(doc(db, PROPERTIES_COLLECTION, postData.propertyId));
+                    if (propSnap.exists()) {
+                        ownerId = propSnap.data().ownerId || null;
+                    }
+                } catch (e) {
+                    console.warn("Could not resolve ownerId from properties:", e);
+                }
+            }
+
+            const basePost = formatPost({ id: docSnap.id, data: () => ({ ...postData, ownerId }) });
+            const expanded = expandPost(basePost);
+
+            if (configIdx !== -1) {
+                const specific = expanded.find(p => p.id === id);
+                return specific || expanded[0];
+            }
+
+            return expanded[0];
+        }
+        return null;
+    } catch (error) {
+        console.error("Fetch Property Error:", error);
+        throw error;
+    }
+};
+
+
 /**
  * BOOKINGS SERVICES
  */
 export const subscribeToUserBookings = (userId, callback) => {
+    // 💡 Performance Tip: Removed orderBy to avoid mandatory composite index. 
+    // We sort client-side in the callback for zero-index overhead.
     const q = query(
         collection(db, BOOKINGS_COLLECTION),
-        where('userId', '==', userId)
+        where('userId', '==', userId),
+        limit(50)
     );
     return onSnapshot(q, (snapshot) => {
-        const data = snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        }));
+        const data = snapshot.docs
+            .map(doc => ({ id: doc.id, ...doc.data() }))
+            .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
         callback(data);
     }, (error) => {
-        console.error("Bookings Fetch Error:", error);
+        console.error("Bookings Sync Protocol Interrupted:", error);
     });
+};
+
+export const getBookingsPaginated = async (userId = null, lastVisible = null, batchSize = 10) => {
+    try {
+        let q = collection(db, BOOKINGS_COLLECTION);
+        const constraints = [orderBy("createdAt", "desc"), limit(batchSize)];
+
+        if (userId) constraints.unshift(where('userId', '==', userId));
+        if (lastVisible) constraints.push(startAfter(lastVisible));
+
+        const snapshot = await getDocs(query(q, ...constraints));
+        return {
+            bookings: snapshot.docs.map(d => ({ id: d.id, ...d.data() })),
+            lastVisible: snapshot.docs[snapshot.docs.length - 1]
+        };
+    } catch (error) {
+        console.error("Bookings Pagination Error:", error);
+        throw error;
+    }
 };
 
 export const deleteBooking = async (bookingId) => {
@@ -143,7 +269,7 @@ export const createBooking = async (bookingData) => {
     try {
         const docRef = await addDoc(collection(db, BOOKINGS_COLLECTION), {
             ...bookingData,
-            status: 'Upcoming',
+            status: bookingData.status || 'Upcoming',
             createdAt: new Date().toISOString()
         });
 
@@ -167,6 +293,24 @@ export const createBooking = async (bookingData) => {
             read: false,
             emailTrigger: true // Signal for cloud function to send email
         });
+
+        // If it's an advance payment booking, create a payment record for the vendor/owner
+        if (bookingData.status === 'Advance Paid') {
+            await addDoc(collection(db, PAYMENTS_COLLECTION), {
+                bookingId: docRef.id,
+                userId: bookingData.userId,
+                userName: bookingData.userName,
+                propertyName: bookingData.propertyName,
+                property: bookingData.propertyName, // Compatibility field
+                amount: bookingData.advance || 0,
+                status: 'Completed',
+                type: 'Advance Payment',
+                paymentMethod: 'Razorpay',
+                paymentId: bookingData.paymentId || null,
+                ownerId: bookingData.ownerId || null,
+                createdAt: new Date().toISOString()
+            });
+        }
 
         return docRef.id;
     } catch (error) {
@@ -334,17 +478,19 @@ export const addPaymentRecord = async (paymentData) => {
     }
 };
 export const subscribeToUserPayments = (userId, callback) => {
+    // 💡 Performance Tip: Removed orderBy to avoid mandatory composite index.
     const q = query(
         collection(db, PAYMENTS_COLLECTION),
-        where('userId', '==', userId)
+        where('userId', '==', userId),
+        limit(50)
     );
     return onSnapshot(q, (snapshot) => {
         const data = snapshot.docs
             .map(doc => ({ id: doc.id, ...doc.data() }))
-            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
         callback(data);
     }, (error) => {
-        console.error("Payments Sync Error:", error);
+        console.error("Payments Sync Protocol Interrupted:", error);
     });
 };
 export const subscribeToUserRenterDetails = (userId, callback) => {
@@ -630,26 +776,88 @@ export const subscribeToRoommateRequests = (callback, maxLimit = 30) => {
 
 export const createRoommateRequest = async (requestData) => {
     try {
-        await addDoc(collection(db, ROOMMATE_REQUESTS_COLLECTION), {
+        const docRef = await addDoc(collection(db, ROOMMATE_REQUESTS_COLLECTION), {
             ...requestData,
             createdAt: new Date().toISOString()
         });
-        return true;
+        return docRef.id;
     } catch (error) {
         console.error("Error creating roommate request:", error);
         throw error;
     }
 };
 
-export const subscribeToMessages = (chatId, callback) => {
+export const updateRoommateRequest = async (requestId, updateData) => {
+    try {
+        const docRef = doc(db, ROOMMATE_REQUESTS_COLLECTION, requestId);
+        await updateDoc(docRef, {
+            ...updateData,
+            updatedAt: new Date().toISOString()
+        });
+        return true;
+    } catch (error) {
+        console.error("Error updating roommate request:", error);
+        throw error;
+    }
+};
+
+export const deleteRoommateRequest = async (requestId) => {
+    try {
+        await deleteDoc(doc(db, ROOMMATE_REQUESTS_COLLECTION, requestId));
+
+        // 1. Delete by searching originalId property
+        const q = query(collection(db, POSTS_COLLECTION), where("originalId", "==", requestId));
+        const snap = await getDocs(q);
+        const deletePromises = snap.docs.map(item => deleteDoc(doc(db, POSTS_COLLECTION, item.id)));
+        await Promise.all(deletePromises);
+
+        // 2. Fallback: Check if the post itself has the same ID
+        try {
+            const postRef = doc(db, POSTS_COLLECTION, requestId);
+            const postSnap = await getDoc(postRef);
+            if (postSnap.exists()) {
+                await deleteDoc(postRef);
+            }
+        } catch (e) {
+            console.warn("Secondary delete check failed:", e);
+        }
+
+        return true;
+    } catch (error) {
+        console.error("Error deleting roommate request:", error);
+        throw error;
+    }
+};
+
+export const subscribeToMessages = (chatId, callback, maxLimit = 50) => {
     const q = query(
         collection(db, CHATS_COLLECTION, chatId, "messages"),
-        orderBy("createdAt", "asc")
+        orderBy("createdAt", "desc"),
+        limit(maxLimit)
     );
     return onSnapshot(q, (snapshot) => {
-        const messages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const messages = snapshot.docs
+            .map(doc => ({ id: doc.id, ...doc.data() }))
+            .reverse(); // Newest at bottom for UI
         callback(messages);
     });
+};
+
+export const getMessagesPaginated = async (chatId, lastVisible = null, batchSize = 50) => {
+    try {
+        const constraints = [orderBy("createdAt", "desc"), limit(batchSize)];
+        if (lastVisible) constraints.push(startAfter(lastVisible));
+
+        const q = query(collection(db, CHATS_COLLECTION, chatId, "messages"), ...constraints);
+        const snapshot = await getDocs(q);
+        return {
+            messages: snapshot.docs.map(d => ({ id: d.id, ...d.data() })),
+            lastVisible: snapshot.docs[snapshot.docs.length - 1]
+        };
+    } catch (error) {
+        console.error("Messages Pagination Error:", error);
+        throw error;
+    }
 };
 
 export const sendMessage = async (chatId, messageData) => {
@@ -670,7 +878,53 @@ export const sendMessage = async (chatId, messageData) => {
     }
 };
 
-export const findOrCreateChat = async (user1Id, user2Id) => {
+/**
+ * CHAT & MESSAGING SERVICES
+ */
+export const reportChatProtocol = async (reportData) => {
+    try {
+        await addDoc(collection(db, "reports"), {
+            ...reportData,
+            status: 'pending',
+            createdAt: new Date().toISOString()
+        });
+
+        // Push alert to Admin Dashboard
+        await addDoc(collection(db, "notifications"), {
+            targetId: 'admin',
+            title: 'Chat Protocol Violation Report',
+            message: `Resident ${reportData.reporterName || 'Unknown'} reported a chat: "${reportData.reason}"`,
+            type: 'USER_REPORT',
+            read: false,
+            createdAt: new Date().toISOString()
+        });
+
+        return true;
+    } catch (error) {
+        console.error("Report Protocol Failed:", error);
+        throw error;
+    }
+};
+
+export const clearChatHistory = async (chatId) => {
+    try {
+        const q = query(collection(db, CHATS_COLLECTION, chatId, "messages"));
+        const snapshot = await getDocs(q);
+        const deletePromises = snapshot.docs.map(doc => deleteDoc(doc.ref));
+        await Promise.all(deletePromises);
+
+        await updateDoc(doc(db, CHATS_COLLECTION, chatId), {
+            lastMessage: "Conversation cleared",
+            lastMessageAt: new Date().toISOString()
+        });
+        return true;
+    } catch (error) {
+        console.error("Clear Chat Protocol Interrupted:", error);
+        throw error;
+    }
+};
+
+export const findOrCreateChat = async (user1Id, user2Id, user1Name = "Resident", user2Name = "Resident") => {
     const chatId = [user1Id, user2Id].sort().join('_');
     const chatRef = doc(db, CHATS_COLLECTION, chatId);
     const chatSnap = await getDoc(chatRef);
@@ -678,20 +932,53 @@ export const findOrCreateChat = async (user1Id, user2Id) => {
     if (!chatSnap.exists()) {
         await setDoc(chatRef, {
             participants: [user1Id, user2Id],
+            participantNames: {
+                [user1Id]: user1Name,
+                [user2Id]: user2Name
+            },
             createdAt: new Date().toISOString()
+        });
+    } else {
+        // Update names if they changed or are missing
+        await updateDoc(chatRef, {
+            [`participantNames.${user1Id}`]: user1Name,
+            [`participantNames.${user2Id}`]: user2Name
         });
     }
     return chatId;
 };
 
-export const subscribeToUserChats = (userId, callback) => {
+export const subscribeToUserChats = (userId, callback, maxLimit = 20) => {
+    // Removed orderBy to prevent mandatory composite index error
     const q = query(
         collection(db, CHATS_COLLECTION),
         where("participants", "array-contains", userId),
-        orderBy("lastMessageAt", "desc")
+        limit(maxLimit)
     );
     return onSnapshot(q, (snapshot) => {
-        const chats = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const chats = snapshot.docs
+            .map(doc => ({ id: doc.id, ...doc.data() }))
+            .sort((a, b) => new Date(b.lastMessageAt || 0) - new Date(a.lastMessageAt || 0));
         callback(chats);
     });
+};
+
+/**
+ * EMAIL & NOTIFICATION DISPATCH (Trigger Email from Firestore Extension)
+ */
+export const triggerEmailProtocol = async (toEmail, subject, htmlBody) => {
+    try {
+        await addDoc(collection(db, 'mail'), {
+            to: toEmail,
+            message: {
+                subject: subject,
+                html: htmlBody,
+            }
+        });
+        console.log(`Email dispatched to queue: ${toEmail}`);
+        return true;
+    } catch (error) {
+        console.error("Email Dispatch Interrupted:", error);
+        return false;
+    }
 };

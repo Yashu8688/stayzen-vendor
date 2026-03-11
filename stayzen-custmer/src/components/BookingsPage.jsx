@@ -254,7 +254,6 @@ export default function BookingsPage({ setActiveTab, userId }) {
                                     className="bk-date-input"
                                     value={rentDueDay}
                                     onChange={(e) => {
-                                        const selectedDate = new Date(e.target.value);
                                         setRentDueDay(e.target.value); // Store full date string
                                     }}
                                 />
