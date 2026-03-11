@@ -5,10 +5,12 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
-  sendPasswordResetEmail
+  sendPasswordResetEmail,
+  GoogleAuthProvider,
+  signInWithPopup
 } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
-import { findUserByPhone } from "../services/dataService";
+import { findUserByPhone, getOrCreateManagerProfile } from "../services/dataService";
 import logo from "../assets/logo.jpg";
 
 export default function Auth({ onLogin }) {
@@ -107,6 +109,7 @@ export default function Auth({ onLogin }) {
           email,
           phoneNumber: phoneNumber,
           role: 'manager',
+          status: 'Pending',
           createdAt: new Date().toISOString()
         });
 
@@ -138,6 +141,23 @@ export default function Auth({ onLogin }) {
       }
 
       setAuthError(m);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setAuthError("");
+    setIsLoading(true);
+    const provider = new GoogleAuthProvider();
+    try {
+      const result = await signInWithPopup(auth, provider);
+      // Logic is now safely handled in dataService.js to avoid reference errors
+      await getOrCreateManagerProfile(result.user);
+      onLogin && onLogin();
+    } catch (err) {
+      console.error("[Google Auth Error]", err);
+      setAuthError(err.message || "Google sign-in failed.");
     } finally {
       setIsLoading(false);
     }
@@ -203,9 +223,25 @@ export default function Auth({ onLogin }) {
           </button>
 
           {!isForgotPassword && (
-            <p className="footer-text">
-              New Here? <span onClick={() => { setIsRegisterOpen(true); resetAll(); }}>Create Account</span>
-            </p>
+            <>
+              <div className="auth-divider">
+                <span>OR</span>
+              </div>
+
+              <button
+                type="button"
+                className="google-btn"
+                onClick={handleGoogleSignIn}
+                disabled={isLoading}
+              >
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" />
+                Continue with Google
+              </button>
+
+              <p className="footer-text">
+                New Here? <span onClick={() => { setIsRegisterOpen(true); resetAll(); }}>Create Account</span>
+              </p>
+            </>
           )}
         </form>
       </div>

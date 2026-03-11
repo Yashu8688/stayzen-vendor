@@ -145,26 +145,31 @@
 /* Main Content Layout */
 .ov-main-content {
     display: grid;
-    grid-template-columns: 1fr 340px;
-    gap: 32px;
+    grid-template-columns: 1.5fr minmax(280px, 350px);
+    gap: 24px;
     align-items: start;
+    width: 100%;
 }
 
 .ov-chart-card {
-    padding: 32px;
+    padding: 28px;
     display: flex;
     flex-direction: column;
+    min-width: 0;
+    overflow: hidden;
 }
 
 .ov-card-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: 40px;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+    gap: 16px;
 }
 
 .ov-card-title h3 {
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 800;
     color: #1aa79c;
     margin: 0 0 6px 0;
@@ -178,11 +183,11 @@
 }
 
 .ov-chart-select {
-    padding: 10px 16px;
+    padding: 8px 14px;
     background: #f8fafc;
     border: 1.5px solid #f1f5f9;
-    border-radius: 12px;
-    font-size: 13px;
+    border-radius: 10px;
+    font-size: 12px;
     font-weight: 700;
     color: #1e293b;
     outline: none;
@@ -192,17 +197,18 @@
 .ov-chart-body {
     display: flex;
     flex-direction: column;
-    gap: 40px;
+    gap: 32px;
 }
 
 .ov-bar-chart {
-    height: 260px;
+    height: 240px;
     display: flex;
     align-items: flex-end;
     justify-content: space-between;
-    gap: 20px;
-    padding-bottom: 32px;
+    gap: 12px;
+    padding-bottom: 24px;
     border-bottom: 1.5px solid #f1f5f9;
+    min-width: 0;
 }
 
 .ov-bar-group {
@@ -210,15 +216,17 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     height: 100%;
+    min-width: 0;
 }
 
 .ov-bar-track {
     flex: 1;
-    width: 28px;
+    width: 100%;
+    max-width: 24px;
     background: #f8fafc;
-    border-radius: 8px;
+    border-radius: 6px;
     display: flex;
     align-items: flex-end;
     position: relative;
@@ -239,7 +247,7 @@
 }
 
 .ov-bar-month {
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 800;
     color: #94a3b8;
 }
@@ -271,21 +279,25 @@
 .ov-revenue-split {
     display: flex;
     justify-content: space-between;
-    gap: 40px;
+    gap: 20px;
     padding-top: 8px;
+    flex-wrap: wrap;
 }
 
 .ov-split-item {
     display: flex;
-    gap: 14px;
+    gap: 12px;
     align-items: flex-start;
+    flex: 1;
+    min-width: 140px;
 }
 
 .ov-split-dot {
-    width: 12px;
-    height: 12px;
-    border-radius: 4px;
-    margin-top: 4px;
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    margin-top: 2px;
+    flex-shrink: 0;
 }
 
 .ov-split-dot.online {
@@ -304,18 +316,19 @@
     display: flex;
     flex-direction: column;
     gap: 2px;
+    min-width: 0;
 }
 
 .ov-split-label {
-    font-size: 11px;
-    font-weight: 800;
+    font-size: 10px;
+    font-weight: 700;
     color: #94a3b8;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.3px;
 }
 
 .ov-split-value {
-    font-size: 18px;
+    font-size: 14px;
     font-weight: 800;
     color: #1aa79c;
 }
@@ -324,38 +337,42 @@
 .ov-side-column {
     display: flex;
     flex-direction: column;
-    gap: 32px;
+    gap: 24px;
+    min-width: 0;
 }
 
 .ov-occupancy-card {
-    padding: 32px;
+    padding: 28px;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
 }
 
 .ov-gauge-container {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 20px 0;
+    padding: 16px 0;
     position: relative;
-    margin-bottom: 24px;
+    margin-bottom: 20px;
 }
 
 .ov-gauge {
-    width: 160px;
-    height: 160px;
+    width: 140px;
+    height: 140px;
     transform: rotate(-90deg);
 }
 
 .ov-gauge-bg {
     fill: none;
     stroke: #f1f5f9;
-    stroke-width: 3;
+    stroke-width: 2.5;
 }
 
 .ov-gauge-fill {
     fill: none;
     stroke: #1aa79c;
-    stroke-width: 3;
+    stroke-width: 2.5;
     stroke-linecap: round;
     transition: stroke-dasharray 1s ease;
 }
@@ -368,22 +385,22 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
+    gap: 3px;
 }
 
 .ov-gauge-percent {
-    font-size: 32px;
+    font-size: 28px;
     font-weight: 800;
     color: #1aa79c;
     line-height: 1;
 }
 
 .ov-gauge-label {
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 800;
     color: #94a3b8;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 0.8px;
 }
 
 .ov-gauge-details {
@@ -638,17 +655,123 @@
     cursor: pointer;
 }
 
-/* Responsive Fixes for Laptops & Smaller Screens */
+/* Status Banner Styles */
+.ov-status-banner {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 20px;
+    background: linear-gradient(135deg, #1aa79c 0%, #1e3a8a 100%);
+    border-radius: 16px;
+    color: white;
+    margin-bottom: 24px;
+    position: relative;
+    box-shadow: 0 10px 20px rgba(26, 167, 156, 0.2);
+    animation: slideInDown 0.5s ease-out;
+}
+
+.ov-status-icon {
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.ov-status-content {
+    flex: 1;
+}
+
+.ov-status-content strong {
+    display: block;
+    font-size: 16px;
+    margin-bottom: 2px;
+}
+
+.ov-status-content p {
+    margin: 0;
+    font-size: 14px;
+    opacity: 0.9;
+}
+
+.ov-status-close {
+    background: rgba(0, 0, 0, 0.1);
+    border: none;
+    color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.ov-status-close:hover {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+@keyframes slideInDown {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.ov-chart-card,
+.ov-occupancy-card {
+    padding: 24px;
+}
+
+.ov-card-header {
+    margin-bottom: 24px;
+}
+
+@media (max-width: 1600px) {
+    .ov-main-content {
+        grid-template-columns: 1.2fr 300px;
+        gap: 20px;
+    }
+
+    .ov-chart-card,
+    .ov-occupancy-card {
+        padding: 24px;
+    }
+
+    .ov-card-header {
+        margin-bottom: 24px;
+    }
+}
+
 @media (max-width: 1440px) {
     .ov-stats-grid {
         gap: 16px;
+    }
+
+    .ov-main-content {
+        grid-template-columns: 1fr minmax(260px, 300px);
+        gap: 18px;
+    }
+
+    .ov-bar-chart {
+        height: 220px;
+        gap: 10px;
     }
 }
 
 @media (max-width: 1366px) {
     .ov-main-content {
         grid-template-columns: 1fr;
-        /* Switch to stack earlier for standard laptops */
+        gap: 24px;
     }
 
     .ov-side-column {
@@ -662,6 +785,40 @@
     }
 }
 
+@media (max-width: 1024px) {
+
+    .ov-chart-card,
+    .ov-occupancy-card {
+        padding: 20px;
+    }
+
+    .ov-card-header {
+        margin-bottom: 20px;
+    }
+
+    .ov-bar-chart {
+        height: 200px;
+        gap: 8px;
+        padding-bottom: 20px;
+    }
+
+    .ov-bar-group {
+        gap: 8px;
+    }
+
+    .ov-card-title h3 {
+        font-size: 16px;
+    }
+
+    .ov-revenue-split {
+        gap: 16px;
+    }
+
+    .ov-split-value {
+        font-size: 13px;
+    }
+}
+
 @media (max-width: 900px) {
     .ov-side-column {
         display: flex;
@@ -670,6 +827,10 @@
 
     .ov-stats-grid {
         grid-template-columns: repeat(2, 1fr);
+    }
+
+    .ov-main-content {
+        gap: 20px;
     }
 }
 
@@ -691,12 +852,43 @@
 
     .ov-chart-card,
     .ov-occupancy-card {
-        padding: 20px;
+        padding: 16px;
     }
 
     .ov-bar-chart {
         overflow-x: auto;
-        padding-bottom: 40px;
+        padding-bottom: 20px;
+        height: 180px;
+    }
+
+    .ov-card-title h3 {
+        font-size: 14px;
+    }
+
+    .ov-card-title p {
+        font-size: 12px;
+    }
+
+    .ov-chart-select {
+        padding: 6px 12px;
+        font-size: 11px;
+    }
+
+    .ov-gauge {
+        width: 120px;
+        height: 120px;
+    }
+
+    .ov-gauge-percent {
+        font-size: 22px;
+    }
+
+    .ov-split-item {
+        min-width: 120px;
+    }
+
+    .ov-split-label {
+        font-size: 9px;
     }
 }
 
@@ -717,60 +909,107 @@
     }
 
     .ov-greeting {
-        font-size: 20px;
+        font-size: 18px;
     }
 
     .ov-subtitle {
-        font-size: 13px;
+        font-size: 12px;
     }
 
     .ov-bar-chart {
         justify-content: flex-start;
-        gap: 12px;
-        min-width: 450px;
+        gap: 8px;
+        min-width: 400px;
+        height: 160px;
     }
 
     .ov-bar-group {
         flex: none;
-        width: 24px;
+        width: 20px;
     }
 
     .ov-bar-track {
-        width: 24px;
+        width: 20px;
     }
 
     .ov-revenue-split {
         flex-direction: column;
-        gap: 20px;
-    }
-
-    .ov-stat-card {
-        padding: 16px;
         gap: 16px;
     }
 
+    .ov-stat-card {
+        padding: 14px;
+        gap: 14px;
+    }
+
     .ov-stat-value {
-        font-size: 20px;
+        font-size: 18px;
     }
 
     .ov-stat-icon-box {
-        width: 48px;
-        height: 48px;
+        width: 44px;
+        height: 44px;
     }
 
     .ov-stat-icon-box svg {
-        width: 20px;
-        height: 20px;
+        width: 18px;
+        height: 18px;
+    }
+
+    .ov-chart-card,
+    .ov-occupancy-card {
+        padding: 14px;
+    }
+
+    .ov-gauge-container {
+        padding: 12px 0;
+        margin-bottom: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .ov-gauge {
+        width: 100px;
+        height: 100px;
+    }
+
+    .ov-gauge-percent {
+        font-size: 18px;
+    }
+
+    .ov-bar-chart {
+        min-width: 320px;
+        gap: 6px;
+    }
+
+    .ov-bar-group {
+        width: 18px;
+    }
+
+    .ov-bar-track {
+        width: 18px;
+    }
+
+    .ov-split-item {
+        min-width: 100px;
+    }
+
+    .ov-split-value {
+        font-size: 12px;
     }
 }
 
 @media (max-width: 400px) {
     .ov-gauge {
-        width: 120px;
-        height: 120px;
+        width: 90px;
+        height: 90px;
     }
 
     .ov-gauge-percent {
-        font-size: 24px;
+        font-size: 16px;
+    }
+
+    .ov-card-title h3 {
+        font-size: 13px;
     }
 }

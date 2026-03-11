@@ -52,7 +52,9 @@ const Properties = () => {
             });
 
             if (propertySnapshot) {
-                const targetId = propertySnapshot.userId || propertySnapshot.authEmail || propertySnapshot.email;
+                // Determine target user UID for notification (prioritize ownerId/userId)
+                const targetId = propertySnapshot.ownerId || propertySnapshot.userId || propertySnapshot.authEmail || propertySnapshot.email;
+
                 if (targetId) {
                     await addDoc(collection(db, 'notifications'), {
                         type: 'PROPERTY_STATUS',
@@ -62,6 +64,33 @@ const Properties = () => {
                         propertyId: propertyId,
                         status: 'unread',
                         createdAt: new Date().toISOString()
+                    });
+                }
+
+                // 📧 Trigger Approval/Rejection Email
+                if (propertySnapshot.email) {
+                    const isApproved = newStatus === 'Approved';
+                    await addDoc(collection(db, 'mail'), {
+                        to: propertySnapshot.email,
+                        message: {
+                            subject: isApproved
+                                ? `Good News! Your ${propertySnapshot.type} is Approved`
+                                : `Update regarding your ${propertySnapshot.type} registration`,
+                            html: `
+                                <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                                    <h2 style="color: ${isApproved ? '#1aa79c' : '#ef4444'};">
+                                        Hello ${propertySnapshot.manager},
+                                    </h2>
+                                    <p>Your ${propertySnapshot.type} <strong>"${propertySnapshot.name}"</strong> has been <strong>${newStatus.toLowerCase()}</strong> by the admin.</p>
+                                    ${isApproved
+                                    ? `<p>You can now log in to your dashboard and start posting your property. Happy hosting!</p>`
+                                    : `<p>Please contact support if you have any questions regarding this decision.</p>`
+                                }
+                                    <br>
+                                    <p>Best regards,<br>The StayZen Team</p>
+                                </div>
+                            `,
+                        }
                     });
                 }
             }

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { IoSearchOutline, IoDownloadOutline, IoFilterOutline, IoCardOutline, IoWalletOutline, IoCheckmarkCircleOutline, IoTimeOutline, IoTrashOutline } from 'react-icons/io5';
 import './payments.css';
-import { subscribeToPayments, deletePayment, updatePayment, collectPayment } from '../services/dataService';
+import { subscribeToPayments, deletePayment, collectPayment } from '../services/dataService';
 
 export default function PaymentsPage({ userId }) {
     const [payments, setPayments] = useState([]);

@@ -57,17 +57,7 @@ const Notifications = () => {
     };
 
     return (
-        <div className="intel-dashboard">
-            <div className="intel-simple-header">
-                <div className="simple-header-content">
-                    <h1>Notifications</h1>
-                    <p>Stay updated on your journey</p>
-                </div>
-                <button className="intel-header-action" onClick={markAllRead}>
-                    Mark all as read
-                </button>
-            </div>
-
+        <div className="intel-dashboard notif-view">
             <div className="intel-content-wrapper">
                 {notifications.length > 0 ? (
                     <div className="notif-list">

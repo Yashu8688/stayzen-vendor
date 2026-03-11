@@ -1,10 +1,25 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-import { IoArrowForwardOutline } from 'react-icons/io5';
+import { motion, AnimatePresence } from 'framer-motion';
+import { IoArrowForwardOutline, IoStar, IoMenu, IoClose } from 'react-icons/io5';
+import { Star, X, MapPin, Phone, Mail, ChevronRight, Play, Layout, Shield, ArrowRight, Home, Users, BarChart3, Clock, Quote, Facebook, Twitter, Instagram, Linkedin } from 'lucide-react';
+import PropertyRegistrationModal from './PropertyRegistrationModal';
+import { auth } from '../firebase';
+import { addProperty } from '../services/dataService';
+import './properties.css';
 import './landingPage.css';
 
 const LandingPage = ({ onExplore }) => {
     const [isScrolled, setIsScrolled] = React.useState(false);
+    const [selectedReview, setSelectedReview] = React.useState(null);
+    const [isRegisterModalOpen, setIsRegisterModalOpen] = React.useState(false);
+
+    const reviews = [
+        { id: 1, name: "Anand Kumar", role: "Apartment Owner", text: "StayZen has transformed how I manage my 12 units. The automation is flawless.", rating: 5 },
+        { id: 2, name: "Priya Reddy", role: "PG Manager", text: "Finally, a tool that understands the complexity of PG management. Highly recommended!", rating: 5 },
+        { id: 3, name: "Suresh Chennupati", role: "Real Estate Agent", text: "The cleanest UI I've ever seen. My clients love the transparency and speed.", rating: 4 },
+        { id: 4, name: "Meera Iyer", role: "Property Developer", text: "The roommate matching feature is a game-changer for our co-living spaces.", rating: 5 },
+        { id: 5, name: "Vikram Shah", role: "Hostel Owner", text: "Simple, powerful, and effective. The customer support is top-notch as well.", rating: 5 }
+    ];
 
     React.useEffect(() => {
         const handleScroll = () => {
@@ -49,11 +64,11 @@ const LandingPage = ({ onExplore }) => {
                     transition={{ duration: 0.8, ease: "easeOut" }}
                     className="lp-nav-actions"
                 >
-                    <button onClick={onExplore} className="lp-nav-btn">Sign In</button>
+                    <button onClick={() => onExplore()} className="lp-nav-btn">Sign In</button>
                 </motion.div>
             </nav>
 
-            <main className="lp-content">
+            <div className="lp-content">
                 <div className="lp-main-grid">
                     <div className="lp-hero-section">
                         <motion.div
@@ -86,10 +101,10 @@ const LandingPage = ({ onExplore }) => {
                                 <motion.button
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
-                                    onClick={onExplore}
+                                    onClick={() => setIsRegisterModalOpen(true)}
                                     className="lp-primary-btn"
                                 >
-                                    Explore Workspace <IoArrowForwardOutline size={20} />
+                                    Enroll Your Property <IoArrowForwardOutline size={20} />
                                 </motion.button>
 
                                 <div className="lp-stats">
@@ -117,20 +132,20 @@ const LandingPage = ({ onExplore }) => {
                                 </svg>
                             </div>
 
-                            {/* The Travelers Loop */}
+                            {/* The Travelers Loop - Fixed path to enter the house */}
                             {[0, 1, 2].map((i) => (
                                 <motion.div
                                     key={i}
                                     className="lp-traveler"
-                                    initial={{ left: "-20%", opacity: 0 }}
+                                    initial={{ left: "-10%", opacity: 0 }}
                                     animate={{
-                                        left: ["-20%", "85%"],
+                                        left: ["-10%", "85%"],
                                         opacity: [0, 1, 1, 0]
                                     }}
                                     transition={{
-                                        duration: 8,
+                                        duration: 12,
                                         repeat: Infinity,
-                                        delay: i * 3,
+                                        delay: i * 4,
                                         ease: "linear"
                                     }}
                                 >
@@ -174,11 +189,191 @@ const LandingPage = ({ onExplore }) => {
                         </motion.div>
                     </div>
                 </div>
-            </main>
+            </div>
+
+            {/* Premium Reviews Marquee - Moved outside for full-width */}
+            <section className="lp-reviews-section">
+                <div className="lp-reviews-header">
+                    <span className="lp-badge">Testimonials</span>
+                    <h2>Trust from Leading <span>Property Managers</span></h2>
+                </div>
+
+                <div className="lp-reviews-container">
+                    <motion.div
+                        className="lp-reviews-track"
+                        animate={{ x: [0, -1000] }}
+                        transition={{
+                            duration: 25,
+                            repeat: Infinity,
+                            ease: "linear"
+                        }}
+                    >
+                        {[...reviews, ...reviews].map((rev, i) => (
+                            <div key={i} className="lp-review-card">
+                                <div className="rev-quote">
+                                    <Quote size={20} fill="var(--lp-primary)" color="var(--lp-primary)" opacity={0.2} />
+                                </div>
+                                <div className="rev-stars">
+                                    {[...Array(rev.rating)].map((_, j) => (
+                                        <Star key={j} size={14} fill="#fb6340" color="#fb6340" />
+                                    ))}
+                                </div>
+                                <p className="rev-text">"{rev.text}"</p>
+                                <button
+                                    className="rev-view-details"
+                                    onClick={() => setSelectedReview(rev)}
+                                >
+                                    View Details
+                                </button>
+                                <div className="rev-footer">
+                                    <div className="rev-avatar">{rev.name.charAt(0)}</div>
+                                    <div className="rev-info">
+                                        <strong>{rev.name}</strong>
+                                        <span>{rev.role}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </motion.div>
+                </div>
+            </section>
 
             <footer className="lp-footer">
-                <p>© 2026 StayZen. Simple property management for everyone.</p>
+                <div className="lp-footer-grid">
+                    <div className="lp-footer-brand">
+                        <div className="lp-footer-logo">
+                            <img src="/logo.svg" alt="StayZen" className="lp-footer-logo-img" />
+                            <span>Stay<span>Zen</span></span>
+                        </div>
+                        <p>
+                            Modern property management for the digital age.
+                            Simplify your workflow and enhance your tenant experience.
+                        </p>
+                        <div className="lp-footer-socials">
+                            <a href="#" className="lp-social-btn"><Facebook size={18} /></a>
+                            <a href="#" className="lp-social-btn"><Twitter size={18} /></a>
+                            <a href="#" className="lp-social-btn"><Instagram size={18} /></a>
+                            <a href="#" className="lp-social-btn"><Linkedin size={18} /></a>
+                        </div>
+                    </div>
+
+                    <div className="lp-footer-col">
+                        <h4>Platform</h4>
+                        <div className="lp-footer-links">
+                            <a href="#">Features</a>
+                            <a href="#">Pricing</a>
+                            <a href="#">Mobile App</a>
+                            <a href="#">Success Stories</a>
+                        </div>
+                    </div>
+
+                    <div className="lp-footer-col">
+                        <h4>Support</h4>
+                        <div className="lp-footer-links">
+                            <a href="#">Help Center</a>
+                            <a href="#">Contact Support</a>
+                            <a href="#">Security</a>
+                            <a href="#">Status</a>
+                        </div>
+                    </div>
+
+                    <div className="lp-footer-col">
+                        <h4>Contact Us</h4>
+                        <div className="lp-footer-links">
+                            <a href="tel:+919876543210" className="lp-contact-item">
+                                <Phone size={16} />
+                                <span>+91 98765 43210</span>
+                            </a>
+                            <a href="mailto:support@stayzen.com" className="lp-contact-item">
+                                <Mail size={16} />
+                                <span>support@stayzen.com</span>
+                            </a>
+                            <div className="lp-contact-item">
+                                <MapPin size={16} />
+                                <span>Hyderabad, TS, India</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="lp-footer-bottom">
+                    <p>© 2026 StayZen. Simple property management for everyone.</p>
+                    <div className="lp-legal-links">
+                        <a href="#">Privacy Policy</a>
+                        <a href="#">Terms of Service</a>
+                        <a href="#">Cookies</a>
+                    </div>
+                </div>
             </footer>
+
+            {/* Premium Review Modal */}
+            <AnimatePresence>
+                {selectedReview && (
+                    <motion.div
+                        className="lp-modal-overlay"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={() => setSelectedReview(null)}
+                    >
+                        <motion.div
+                            className="lp-review-modal"
+                            initial={{ scale: 0.9, y: 20, opacity: 0 }}
+                            animate={{ scale: 1, y: 0, opacity: 1 }}
+                            exit={{ scale: 0.9, y: 20, opacity: 0 }}
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <button className="modal-close" onClick={() => setSelectedReview(null)}>
+                                <X size={24} />
+                            </button>
+
+                            <div className="modal-content">
+                                <div className="modal-quote">
+                                    <Quote size={40} color="var(--lp-primary)" opacity={0.3} />
+                                </div>
+                                <div className="modal-stars">
+                                    {[...Array(selectedReview.rating)].map((_, j) => (
+                                        <Star key={j} size={18} fill="#fb6340" color="#fb6340" />
+                                    ))}
+                                </div>
+                                <p className="modal-text">"{selectedReview.text}"</p>
+
+                                <div className="modal-user-footer">
+                                    <div className="modal-avatar">{selectedReview.name.charAt(0)}</div>
+                                    <div className="modal-user-info">
+                                        <strong>{selectedReview.name}</strong>
+                                        <span>{selectedReview.role}</span>
+                                    </div>
+                                </div>
+
+                                <div className="modal-badges">
+                                    <span className="m-badge">Verified User</span>
+                                    <span className="m-badge teal">Member since 2024</span>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Reusable Property Registration Modal */}
+            <PropertyRegistrationModal
+                isOpen={isRegisterModalOpen}
+                onClose={() => setIsRegisterModalOpen(false)}
+                onComplete={async (data) => {
+                    console.log("Registration complete from LP:", data);
+                    if (auth.currentUser) {
+                        try {
+                            await addProperty({ ...data, ownerId: auth.currentUser.uid });
+                        } catch (err) {
+                            console.error("Error saving property from LP:", err);
+                        }
+                    } else {
+                        localStorage.setItem('pendingPropertyRegistration', JSON.stringify(data));
+                    }
+                    onExplore('properties');
+                }}
+            />
         </motion.div>
     );
 };

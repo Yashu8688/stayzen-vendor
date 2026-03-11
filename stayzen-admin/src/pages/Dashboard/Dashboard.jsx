@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './Dashboard.css';
 import { db } from '../../firebase';
-import { collection, onSnapshot } from 'firebase/firestore';
+import { collection, onSnapshot, doc, query, orderBy, limit } from 'firebase/firestore';
 import {
     XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
     AreaChart, Area, Bar, ComposedChart, Cell,
@@ -88,74 +88,94 @@ const Dashboard = () => {
         revenue: 0,
         feedbackCount: 0
     });
+    const [pendingBanks, setPendingBanks] = useState(0);
     const [recentBookings, setRecentBookings] = useState([]);
     const [loading, setLoading] = useState(true);
     const [activeSector, setActiveSector] = useState(0);
     const [pieData, setPieData] = useState([]);
     const [financeData, setFinanceData] = useState([]);
+    const [visitStats, setVisitStats] = useState({ vendors: 0, users: 0 });
 
     useEffect(() => {
         setLoading(true);
 
-        const unsubProperties = onSnapshot(collection(db, 'properties'), (snap) => {
-            const all = snap.docs.map(d => d.data());
-            const approved = all.filter(p => p.status === 'Approved').length;
-            const pending = all.filter(p => p.status === 'Processing').length;
-            setCounts(prev => ({ ...prev, properties: approved, pending }));
-
-            // PIE DATA with active shape method
-            const types = {};
-            all.forEach(p => {
-                const t = p.type || 'Other';
-                types[t] = (types[t] || 0) + 1;
-            });
-            const pData = Object.keys(types).map((t, i) => ({
-                name: t,
-                value: types[t],
-                color: ['#1aa79c', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899'][i % 5]
-            }));
-            setPieData(pData.length > 0 ? pData : [{ name: 'System Ready', value: 1, color: '#1aa79c' }]);
+        // 📊 Live Sharded Visit Analytics
+        const today = new Date().toISOString().split('T')[0];
+        const shardsRef = collection(db, 'analytics', 'visits', 'daily', today, 'shards');
+        const unsubVisits = onSnapshot(shardsRef, (snapshot) => {
+            let totalVendors = 0, totalUsers = 0;
+            snapshot.forEach(d => { totalVendors += (d.data().vendors || 0); totalUsers += (d.data().users || 0); });
+            setVisitStats({ vendors: totalVendors, users: totalUsers });
         });
 
-        const unsubUsers = onSnapshot(collection(db, 'users'), (snap) => {
-            setCounts(prev => ({ ...prev, users: snap.size }));
+        // 🏦 Pending Bank Approvals Monitor (Phase 2)
+        const unsubBanks = onSnapshot(query(collection(db, 'users'), orderBy('createdAt', 'desc'), limit(500)), (snap) => {
+            const pending = snap.docs.filter(d => {
+                const data = d.data();
+                return data.bankDetails && data.bankDetails.verified === false;
+            }).length;
+            setPendingBanks(pending);
         });
 
-        const unsubBookings = onSnapshot(collection(db, 'bookings'), (snap) => {
-            const all = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-            setCounts(prev => ({ ...prev, bookingsCount: snap.size }));
-            setRecentBookings(all.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 5));
+        // 📈 SYSTEM STATS — reads a single aggregate doc
+        const unsubStats = onSnapshot(doc(db, 'analytics', 'global_stats'), (docSnap) => {
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                setCounts(prev => ({
+                    ...prev,
+                    users: data.totalUsers || prev.users,
+                    properties: data.totalProperties || prev.properties,
+                    pending: data.pendingProperties || prev.pending,
+                    revenue: data.totalRevenue || prev.revenue,
+                    feedbackCount: data.totalFeedback || prev.feedbackCount,
+                    bookingsCount: data.totalBookings || prev.bookingsCount,
+                }));
+                if (data.propertyTypes) {
+                    const pData = Object.keys(data.propertyTypes).map((t, i) => ({
+                        name: t, value: data.propertyTypes[t],
+                        color: ['#1aa79c', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899'][i % 5]
+                    }));
+                    if (pData.length > 0) setPieData(pData);
+                }
+            } else {
+                // ⚠️ Fallback
+                const q1 = onSnapshot(query(collection(db, 'properties'), limit(200)), (snap) => {
+                    const all = snap.docs.map(d => d.data());
+                    const types = {};
+                    let pending = 0;
+                    all.forEach(p => { const t = p.type || 'Other'; types[t] = (types[t] || 0) + 1; if (p.status === 'Processing') pending++; });
+                    const pData = Object.keys(types).map((t, i) => ({ name: t, value: types[t], color: ['#1aa79c', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899'][i % 5] }));
+                    setPieData(pData.length > 0 ? pData : [{ name: 'System Ready', value: 1, color: '#1aa79c' }]);
+                    setCounts(prev => ({ ...prev, properties: snap.size, pending }));
+                });
+                const q2 = onSnapshot(query(collection(db, 'users'), limit(500)), (snap) => {
+                    const pendingUsers = snap.docs.filter(d => d.data().status === 'Pending').length;
+                    setCounts(prev => ({ ...prev, users: snap.size, pendingUsers }));
+                });
+                const q3 = onSnapshot(query(collection(db, 'payments'), limit(100)), (snap) => {
+                    const total = snap.docs.reduce((acc, d) => acc + (Number(d.data().amount) || 0), 0);
+                    const months = ['Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan'];
+                    setFinanceData(months.map((m, i) => ({ name: m, revenue: (total / (6 - i)) + Math.random() * 1000, target: (total / 5) + 500 })));
+                    setCounts(prev => ({ ...prev, revenue: total }));
+                });
+                return () => { q1(); q2(); q3(); };
+            }
         });
 
-        const unsubPayments = onSnapshot(collection(db, 'payments'), (snap) => {
-            const total = snap.docs.reduce((acc, d) => acc + (Number(d.data().amount) || 0), 0);
-            setCounts(prev => ({ ...prev, revenue: total }));
-
-            // Generate some dynamic finance flow data
-            const months = ['Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan'];
-            const fData = months.map((m, i) => ({
-                name: m,
-                revenue: (total / (6 - i)) + Math.random() * 1000,
-                target: (total / 5) + 500
-            }));
-            setFinanceData(fData);
+        // 🕒 RECENT BOOKINGS
+        const bookingsQuery = query(collection(db, 'bookings'), orderBy('createdAt', 'desc'), limit(5));
+        const unsubBookings = onSnapshot(bookingsQuery, (snap) => {
+            setRecentBookings(snap.docs.map(d => ({ id: d.id, ...d.data() })));
         });
 
-        const unsubFeedback = onSnapshot(collection(db, 'feedback'), (snap) => {
-            setCounts(prev => ({ ...prev, feedbackCount: snap.size }));
-            setLoading(false);
-        });
-
-        return () => {
-            unsubProperties();
-            unsubUsers();
-            unsubBookings();
-            unsubPayments();
-            unsubFeedback();
-        };
+        setLoading(false);
+        return () => { unsubVisits(); unsubBanks(); unsubStats(); unsubBookings(); };
     }, []);
 
+
     const metrics = [
+        { label: 'Vendor Site Visits', val: visitStats.vendors, icon: <Zap size={24} />, color: '#ec4899', trend: 'Live', bg: '#fdf2f8' },
+        { label: 'User Site Visits', val: visitStats.users, icon: <Globe size={24} />, color: '#0ea5e9', trend: 'Live', bg: '#f0f9ff' },
         { label: 'Gross Revenue', val: `₹${(counts.revenue / 1000).toFixed(1)}K`, icon: <CreditCard size={24} />, color: '#1aa79c', trend: '+12%', bg: '#f1f8f7' },
         { label: 'New Bookings', val: counts.bookingsCount, icon: <CalendarClock size={24} />, color: '#3b82f6', trend: '+8%', bg: '#f1f5fe' },
         { label: 'Properties', val: counts.properties, icon: <Building2 size={24} />, color: '#f59e0b', trend: '+4%', bg: '#fffaf1' },
@@ -273,8 +293,28 @@ const Dashboard = () => {
                             <div className="feed-row critical" onClick={() => navigate('/properties')}>
                                 <div className="pulse-dot"></div>
                                 <div className="feed-info">
-                                    <span className="main">System Blockage</span>
+                                    <span className="main">Property Blockage</span>
                                     <span className="sub">{counts.pending} Properties awaiting verification.</span>
+                                </div>
+                                <ChevronRight size={18} />
+                            </div>
+                        )}
+                        {pendingBanks > 0 && (
+                            <div className="feed-row warning" onClick={() => navigate('/users')}>
+                                <div className="pulse-dot cyan" style={{ background: '#06b6d4' }}></div>
+                                <div className="feed-info">
+                                    <span className="main">Settlement Block</span>
+                                    <span className="sub">{pendingBanks} Vendors awaiting bank details verification.</span>
+                                </div>
+                                <ChevronRight size={18} />
+                            </div>
+                        )}
+                        {counts.pendingUsers > 0 && (
+                            <div className="feed-row warning" onClick={() => navigate('/users')}>
+                                <div className="pulse-dot yellow"></div>
+                                <div className="feed-info">
+                                    <span className="main">User Onboarding</span>
+                                    <span className="sub">{counts.pendingUsers} Managers awaiting account approval.</span>
                                 </div>
                                 <ChevronRight size={18} />
                             </div>

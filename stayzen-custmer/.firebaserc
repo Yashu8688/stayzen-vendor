@@ -6,7 +6,7 @@
     "stayzen-dcc00": {
       "hosting": {
         "vendors": [
-          "stayzenvendors"
+          "stayzen-vendors"
         ]
       }
     }

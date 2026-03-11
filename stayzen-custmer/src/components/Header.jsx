@@ -4,7 +4,6 @@ import {
     Bell,
     User,
     LogOut,
-    Settings,
     CheckCircle2,
     AlertCircle,
     ChevronDown,
@@ -163,14 +162,6 @@ export default function Header({ title, onLogout, user, setTab, toggleSidebar })
 
                     {isDropdownOpen && (
                         <div className="hd-dropdown card">
-                            <button className="hd-dropdown-item" onClick={() => { setTab('settings'); setIsDropdownOpen(false); }}>
-                                <User size={18} />
-                                Profile Settings
-                            </button>
-                            <button className="hd-dropdown-item" onClick={() => { setTab('settings'); setIsDropdownOpen(false); }}>
-                                <Settings size={18} />
-                                System Settings
-                            </button>
                             <div className="hd-dropdown-divider"></div>
                             <button className="hd-dropdown-item logout" onClick={onLogout}>
                                 <LogOut size={18} />

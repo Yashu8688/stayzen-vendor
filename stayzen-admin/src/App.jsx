@@ -12,6 +12,7 @@ import Settings from './pages/Settings/Settings';
 import Feedback from './pages/Feedback/Feedback';
 import HelpCenter from './pages/HelpCenter/HelpCenter';
 import Users from './pages/Users/Users';
+import RoommateMatching from './pages/RoommateMatching/RoommateMatching';
 import './App.css';
 
 function App() {
@@ -51,6 +52,7 @@ function App() {
         <Route path="/feedback" element={<Feedback />} />
         <Route path="/help-center" element={<HelpCenter />} />
         <Route path="/users" element={<Users />} />
+        <Route path="/roommate-matching" element={<RoommateMatching />} />
         <Route path="*" element={<Navigate to="/dashboard" />} />
       </Route>
     </Routes>

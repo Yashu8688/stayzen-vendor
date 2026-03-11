@@ -1,6 +1,6 @@
 {
     "hosting": {
-        "site": "stayzen-custmer",
+        "site": "stayzen-vendors",
         "public": "dist",
         "ignore": [
             "firebase.json",

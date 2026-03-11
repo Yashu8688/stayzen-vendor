@@ -1430,7 +1430,7 @@ class _BookingsPageState extends State<BookingsPage> with SingleTickerProviderSt
     final amount = (int.tryParse(amountStr) ?? 500) * 100; // Calculate in paise
 
     var options = {
-      'key': 'rzp_live_SEgBKenzs40ifv', // Actual key from stayzen-users
+      'key': 'rzp_test_S5fEDvgiK3b2fh', // TEST MODE key
       'amount': amount,
       'name': 'StayZen',
       'description': 'Advance Payment for ${data['propertyName']}',
@@ -1669,7 +1669,7 @@ class PaymentsPage extends StatelessWidget {
 
   void _handleMonthlyPayment(BuildContext context, int amount, Map<String, dynamic> bookingData) {
     var options = {
-      'key': 'rzp_live_SEgBKenzs40ifv',
+      'key': 'rzp_test_S5fEDvgiK3b2fh', // TEST MODE key
       'amount': amount * 100,
       'name': 'StayZen',
       'description': 'Monthly Rent for ${bookingData['propertyName']}',

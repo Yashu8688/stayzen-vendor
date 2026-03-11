@@ -1,95 +1,95 @@
-.intel-dashboard {
-    max-width: 1440px;
-    margin: 0 auto;
-    padding-bottom: 80px;
-    animation: hqFadeIn .8s cubic-bezier(.16, 1, .3, 1);
+/* Modern Styling for StayZen Bookings */
+:root {
+    --sz-primary: #1aa79c;
+    --sz-primary-glow: rgba(26, 167, 156, 0.2);
+    --sz-secondary: #0f172a;
+    --sz-accent: #f59e0b;
+    --sz-bg: #f8fafc;
+    --sz-card-bg: rgba(255, 255, 255, 0.8);
+    --sz-text: #1e293b;
+    --sz-text-light: #64748b;
+    --sz-border: rgba(226, 232, 240, 0.8);
 }
 
+/* Premium Header - Clean Version */
+.intel-dashboard.bookings-view {
+    padding-top: 40px;
+}
+
+/* Content Wrapper */
 .intel-content-wrapper {
-    padding: 0 40px;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 20px;
+    position: relative;
+    z-index: 2;
 }
 
-.intel-simple-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    margin-bottom: 24px;
-    padding: 24px 20px 0;
-}
-
-.simple-header-content h1 {
-    font-size: 36px;
-    font-weight: 800;
-    color: #0f172a;
-    margin-bottom: 8px;
-    letter-spacing: -1.5px;
-}
-
-.simple-header-content p {
-    font-size: 16px;
-    color: #64748b;
-    font-weight: 500;
-}
-
+/* Modern Tabs */
 .intel-tabs-container {
-    display: inline-block;
-    margin-bottom: 32px;
+    padding: 6px;
+    border-radius: 16px;
+    background: #f1f5f9;
+    margin-bottom: 40px;
+    display: inline-flex;
+    left: 50%;
+    transform: translateX(-50%);
+    position: relative;
 }
 
 .intel-tabs {
     display: flex;
-    gap: 6px;
-    background: #f1f5f9;
-    padding: 6px;
-    border-radius: 16px;
-    overflow-x: auto;
-    max-width: 100%;
+    gap: 4px;
 }
 
 .intel-tab-btn {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 24px;
+    padding: 10px 20px;
     border-radius: 12px;
-    font-weight: 800;
-    font-size: 13px;
-    color: #64748b;
-    transition: all .3s ease;
     border: none;
     background: transparent;
+    color: #64748b;
+    font-weight: 700;
     cursor: pointer;
-    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    transition: all 0.2s;
 }
 
 .intel-tab-btn.active {
-    background: #fff;
-    color: #0f172a;
+    background: white;
+    color: var(--sz-primary);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
+.intel-tab-btn:hover:not(.active) {
+    background: rgba(26, 167, 156, 0.05);
+    color: var(--sz-primary);
+}
+
+/* Booking Grid */
 .intel-booking-grid {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 24px;
 }
 
+/* Digital Ticket Concept Card */
 .booking-ticket {
     display: flex;
-    background: #fff;
+    background: white;
     border-radius: 24px;
     overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    border: 1px solid var(--sz-border);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
     position: relative;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
-    border: 1px solid #e2e8f0;
-    transition: all 0.3s ease;
-    align-items: stretch;
 }
 
 .booking-ticket:hover {
     transform: translateY(-4px);
-    box-shadow: 0 20px 40px -5px rgba(0, 0, 0, 0.1);
-    border-color: #1aa79c;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
 }
 
 .ticket-main {
@@ -100,9 +100,9 @@
 }
 
 .ticket-img {
-    width: 140px;
-    height: 140px;
-    border-radius: 16px;
+    width: 180px;
+    height: 180px;
+    border-radius: 18px;
     overflow: hidden;
     position: relative;
     flex-shrink: 0;
@@ -116,40 +116,60 @@
 
 .status-badge {
     position: absolute;
-    top: 8px;
-    left: 8px;
-    padding: 4px 10px;
-    border-radius: 8px;
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(4px);
-    font-size: 10px;
-    font-weight: 800;
+    top: 12px;
+    left: 12px;
+    padding: 4px 12px;
+    border-radius: 100px;
+    font-size: 0.75rem;
+    font-weight: 700;
     text-transform: uppercase;
-    color: #0f172a;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(4px);
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+}
+
+.status-badge.booked,
+.status-badge.confirmed,
+.status-badge.completed {
+    background: rgba(16, 185, 129, 0.9);
+}
+
+.status-badge.pending,
+.status-badge.upcoming {
+    background: rgba(245, 158, 11, 0.9);
+}
+
+.status-badge.rejected,
+.status-badge.cancelled {
+    background: rgba(239, 68, 68, 0.9);
 }
 
 .ticket-info {
+    flex: 1;
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    gap: 12px;
+    justify-content: space-between;
 }
 
 .info-header h3 {
-    font-size: 20px;
-    font-weight: 800;
-    color: #0f172a;
-    margin-bottom: 4px;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--sz-secondary);
+    margin-bottom: 8px;
 }
 
 .loc-row {
     display: flex;
     align-items: center;
     gap: 6px;
-    color: #64748b;
-    font-size: 13px;
-    font-weight: 500;
+    color: var(--sz-text-light);
+    font-size: 0.9rem;
+}
+
+.info-chips {
+    display: flex;
+    gap: 12px;
+    margin: 16px 0;
 }
 
 .chip {
@@ -159,305 +179,384 @@
     background: #f1f5f9;
     padding: 6px 12px;
     border-radius: 8px;
-    font-size: 12px;
-    font-weight: 600;
-    color: #475569;
+    font-size: 0.85rem;
+    color: var(--sz-text);
+    font-weight: 500;
 }
 
 .dates-row {
     display: flex;
     align-items: center;
     gap: 8px;
-    color: #94a3b8;
-    font-size: 12px;
+    color: var(--sz-primary);
     font-weight: 600;
-    margin-top: 4px;
+    font-size: 0.95rem;
 }
 
+/* Ticket Perforation */
+.ticket-perforation {
+    width: 40px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+}
+
+.circle-top,
+.circle-bottom {
+    width: 24px;
+    height: 24px;
+    background: var(--sz-bg);
+    border-radius: 50%;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 1px solid var(--sz-border);
+}
+
+.circle-top {
+    top: -12px;
+}
+
+.circle-bottom {
+    bottom: -12px;
+}
+
+.ticket-perforation .line {
+    height: 100%;
+    width: 1px;
+    border-left: 2px dashed var(--sz-border);
+}
+
+/* Action Side */
 .ticket-actions-side {
-    width: 220px;
+    width: 260px;
     padding: 24px;
-    background: #fdfdfd;
+    background: #fafafa;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    gap: 20px;
-    border-left: 2px dashed #e2e8f0;
-    position: relative;
+    align-items: center;
+    text-align: center;
+    border-left: 1px solid transparent;
 }
 
 .price-block {
-    text-align: right;
+    margin-bottom: 24px;
 }
 
 .p-label {
     display: block;
-    font-size: 11px;
-    color: #94a3b8;
-    font-weight: 700;
+    font-size: 0.8rem;
+    color: var(--sz-text-light);
     text-transform: uppercase;
-    margin-bottom: 2px;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
 }
 
 .p-val {
-    font-size: 24px;
-    font-weight: 900;
-    color: #0f172a;
-    display: block;
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--sz-secondary);
 }
 
 .action-buttons {
+    width: 100%;
     display: flex;
     flex-direction: column;
     gap: 12px;
 }
 
 .care-btn {
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    padding: 12px;
-    border-radius: 12px;
-    font-size: 13px;
-    font-weight: 700;
-    border: none;
-    cursor: pointer;
-    transition: all 0.2s;
+    font-size: 0.95rem;
     width: 100%;
 }
 
 .care-btn.primary {
-    background: #1aa79c;
-    color: #fff;
-    box-shadow: 0 4px 12px rgba(26, 167, 156, 0.2);
+    background: var(--sz-primary);
+    color: white;
+    border: none;
+    box-shadow: 0 4px 12px var(--sz-primary-glow);
 }
 
 .care-btn.primary:hover {
-    background: #138f85;
-    transform: translateY(-2px);
-}
-
-.care-btn.secondary {
-    background: #fff;
-    border: 1px solid #e2e8f0;
-    color: #0f172a;
+    background: #158f86;
+    transform: scale(1.02);
 }
 
 .care-btn.ghost {
-    background: #fdfdfd;
-    border: 1px solid #f1f5f9;
+    background: transparent;
     color: #ef4444;
+    border: 1px solid #fee2e2;
 }
 
 .care-btn.ghost:hover {
     background: #fef2f2;
-    border-color: #fee2e2;
 }
 
-.waiting-pill,
+.care-btn.secondary {
+    background: white;
+    color: var(--sz-secondary);
+    border: 1px solid var(--sz-border);
+}
+
+.care-btn.secondary:hover {
+    background: #f8fafc;
+}
+
 .status-pill {
-    padding: 12px;
-    border-radius: 12px;
-    font-size: 13px;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    border: 1px solid;
+    padding: 10px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.status-pill.rejected,
+.status-pill.cancelled {
+    background: #fef2f2;
+    color: #ef4444;
 }
 
 .waiting-pill {
-    background: #fff7ed;
-    color: #ea580c;
-    border-color: #ffedd5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: var(--sz-accent);
+    font-weight: 600;
+    font-size: 0.9rem;
+    background: #fffbeb;
+    padding: 10px;
+    border-radius: 10px;
 }
 
-.status-pill.rejected {
-    background: #fef2f2;
-    color: #ef4444;
-    border-color: #fee2e2;
+/* Empty State */
+.intel-empty-state {
+    text-align: center;
+    padding: 80px 40px;
+    background: white;
+    border-radius: 32px;
+    border: 1px solid var(--sz-border);
 }
 
-.status-pill.cancelled {
+.empty-icon-circle {
+    width: 100px;
+    height: 100px;
     background: #f1f5f9;
-    color: #64748b;
-    border-color: #e2e8f0;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 24px;
+    color: var(--sz-primary);
 }
 
+.intel-empty-state h3 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+}
+
+.intel-empty-state p {
+    color: var(--sz-text-light);
+    margin-bottom: 32px;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.intel-btn-primary {
+    padding: 14px 28px;
+    background: var(--sz-primary);
+    color: white;
+    border: none;
+    border-radius: 14px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.intel-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px var(--sz-primary-glow);
+}
+
+/* Modal Styling */
 .intel-modal-overlay {
     position: fixed;
     inset: 0;
     background: rgba(15, 23, 42, 0.4);
     backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    z-index: 1000;
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 2000;
-    padding: 16px;
+    padding: 20px;
 }
 
 .intel-receipt-card {
-    background: #fff;
+    background: white;
     width: 100%;
-    max-width: 440px;
+    max-width: 500px;
     border-radius: 32px;
     overflow: hidden;
-    box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.5);
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    max-height: 90vh;
-    overflow-y: auto;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
 }
 
 .receipt-header {
-    background: #f8fafc;
     padding: 32px;
-    text-align: center;
+    background: var(--sz-secondary);
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 20px;
     position: relative;
-    border-bottom: 2px dashed #e2e8f0;
 }
 
 .receipt-header h2 {
-    font-size: 20px;
-    font-weight: 800;
-    color: #0f172a;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.receipt-icon {
+    width: 50px;
+    height: 50px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.close-btn {
+    position: absolute;
+    top: 24px;
+    right: 24px;
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.6);
+    cursor: pointer;
 }
 
 .receipt-content {
-    padding: 32px;
+    padding: 40px;
 }
 
 .receipt-amount-block {
     text-align: center;
-    margin-bottom: 32px;
+    margin-bottom: 40px;
+}
+
+.receipt-amount-block span {
+    color: var(--sz-text-light);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 .receipt-amount-block h1 {
-    font-size: 40px;
-    font-weight: 950;
-    color: #0f172a;
-    margin: 4px 0 12px;
-    letter-spacing: -1px;
+    font-size: 3.5rem;
+    font-weight: 800;
+    color: var(--sz-secondary);
+    margin: 10px 0;
 }
 
 .status-pill.success {
+    background: #dcfce7;
+    color: #166534;
     display: inline-block;
-    padding: 4px 12px;
-    background: #ecfdf5;
-    color: #059669;
-    font-size: 11px;
-    font-weight: 800;
-    border-radius: 20px;
-    text-transform: uppercase;
+    padding: 6px 16px;
+    border-radius: 100px;
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.receipt-details {
+    border-top: 1px solid var(--sz-border);
+    padding-top: 30px;
+    margin-bottom: 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
 }
 
 .detail-row {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 16px;
-    font-size: 13px;
+    align-items: center;
 }
 
 .detail-row span:first-child {
-    color: #94a3b8;
+    color: var(--sz-text-light);
+    font-size: 0.95rem;
+}
+
+.detail-row span:last-child,
+.detail-row code {
+    color: var(--sz-secondary);
     font-weight: 600;
 }
 
-.detail-row span:last-child {
-    color: #0f172a;
-    font-weight: 700;
+.mono {
+    font-family: 'JetBrains Mono', monospace;
+    background: #f1f5f9;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.85rem;
 }
 
-@media(max-width:900px) {
-    .intel-content-wrapper {
-        padding: 0 16px;
-    }
+.full-width {
+    width: 100%;
+}
 
-    .intel-simple-header {
-        padding: 24px 16px 0;
-        margin-bottom: 20px;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
-    }
-
-    .simple-header-content h1 {
-        font-size: 28px;
-    }
-
-    .intel-tab-btn {
-        padding: 10px 16px;
-        font-size: 12px;
-    }
-
+@media (max-width: 900px) {
     .booking-ticket {
         flex-direction: column;
-        border-radius: 20px;
-    }
-
-    .ticket-main {
-        padding: 16px;
-        gap: 16px;
-    }
-
-    .ticket-img {
-        width: 100%;
-        height: 180px;
-        border-radius: 12px;
-    }
-
-    .info-header h3 {
-        font-size: 18px;
     }
 
     .ticket-actions-side {
         width: 100%;
         border-left: none;
-        border-top: 1px dashed #e2e8f0;
-        padding: 16px;
-        flex-direction: column;
-        gap: 16px;
+        border-top: 1px solid var(--sz-border);
+        background: white;
     }
 
-    .price-block {
-        text-align: left;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+    .ticket-perforation {
+        display: none;
     }
 
-    .p-val {
-        font-size: 20px;
-    }
-
-    .action-buttons {
-        flex-direction: row;
-        flex-wrap: wrap;
-        gap: 8px;
-    }
-
-    .action-buttons>* {
-        flex: 1;
-        min-width: 120px;
-    }
-
-    .intel-receipt-card {
-        max-width: 100%;
-        border-radius: 24px 24px 0 0;
-        position: fixed;
-        bottom: 0;
-        margin: 0;
+    .ticket-img {
+        width: 120px;
+        height: 120px;
     }
 }
 
-@media(max-width: 480px) {
-    .action-buttons {
+@media (max-width: 640px) {
+    .ticket-main {
         flex-direction: column;
+        padding: 20px;
     }
 
-    .action-buttons>* {
+    .ticket-img {
         width: 100%;
+        height: 200px;
+    }
+
+    .simple-header-content h1 {
+        font-size: 2rem;
     }
 }

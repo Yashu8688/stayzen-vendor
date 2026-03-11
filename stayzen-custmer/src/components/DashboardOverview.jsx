@@ -15,13 +15,15 @@ import {
     CalendarClock
 } from 'lucide-react';
 import './overview.css';
-import { subscribeToProperties, subscribeToRenters, subscribeToPayments } from '../services/dataService';
+import { subscribeToProperties, subscribeToRenters, subscribeToPayments, subscribeToNotifications, markNotificationAsRead } from '../services/dataService';
 
 export default function DashboardOverview({ userId }) {
     const [counts, setCounts] = React.useState({ properties: 0, renters: 0, income: 0, pending: 0 });
     const [payments, setPayments] = React.useState([]);
     const [properties, setProperties] = React.useState([]);
     const [renters, setRenters] = React.useState([]);
+    const [notifications, setNotifications] = React.useState([]);
+    const [showStatusAlert, setShowStatusAlert] = React.useState(null);
 
     React.useEffect(() => {
         if (!userId) return;
@@ -46,7 +48,22 @@ export default function DashboardOverview({ userId }) {
                 }, 0);
             setCounts(prev => ({ ...prev, income: totalIncome }));
         });
-        return () => { unsubProperties(); unsubRenters(); unsubPayments(); };
+
+        const unsubNotifs = subscribeToNotifications(userId, data => {
+            setNotifications(data);
+            // Check for recent unread property status updates
+            const latestStatusNotif = data.find(n => n.type === 'PROPERTY_STATUS' && n.status === 'unread');
+            if (latestStatusNotif) {
+                setShowStatusAlert(latestStatusNotif);
+            }
+        });
+
+        return () => {
+            unsubProperties();
+            unsubRenters();
+            unsubPayments();
+            unsubNotifs();
+        };
     }, [userId]);
 
     const monthlyRevenue = React.useMemo(() => {
@@ -191,6 +208,27 @@ export default function DashboardOverview({ userId }) {
 
     return (
         <div className="ov-container">
+            {showStatusAlert && (
+                <div className="ov-status-banner">
+                    <div className="ov-status-icon">
+                        <ArrowUpRight size={20} />
+                    </div>
+                    <div className="ov-status-content">
+                        <strong>{showStatusAlert.title}</strong>
+                        <p>{showStatusAlert.message}</p>
+                    </div>
+                    <button
+                        className="ov-status-close"
+                        onClick={async () => {
+                            await markNotificationAsRead(showStatusAlert.id);
+                            setShowStatusAlert(null);
+                        }}
+                    >
+                        <X size={18} />
+                    </button>
+                </div>
+            )}
+
             <div className="ov-header-row">
                 <div className="ov-welcome">
                     <div className="ov-welcome-text">

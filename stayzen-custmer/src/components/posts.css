@@ -528,4 +528,15 @@
         width: 100%;
         text-align: center;
     }
+
+    .ps-pg-form-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+}
+
+/* Extra Small Devices */
+@media (max-width: 480px) {
+    .ps-pg-form-grid {
+        grid-template-columns: 1fr !important;
+    }
 }

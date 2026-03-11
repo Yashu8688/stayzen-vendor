@@ -1,239 +1,117 @@
-.intel-dashboard {
-    max-width: 1440px;
-    margin: 0 auto;
-    padding-bottom: 80px;
-    animation: hqFadeIn .8s cubic-bezier(.16, 1, .3, 1);
+/* Premium Favorites UI for StayZen */
+.favorites-page {
+    background: #f8fafc;
+    min-height: 100vh;
+    padding-bottom: 100px;
 }
 
-.intel-content-wrapper {
-    padding: 0 40px;
-}
-
+/* Inherit header styles from Bookings or redefine here for consistency */
 .intel-simple-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    margin-bottom: 40px;
-    padding: 40px 40px 0;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    padding: 80px 20px 100px !important;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 0 !important;
+}
+
+.intel-simple-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(26, 167, 156, 0.1) 0%, transparent 70%);
+    animation: rotate 20s linear infinite;
+}
+
+.simple-header-content {
+    position: relative;
+    z-index: 10;
+    max-width: 800px;
+    margin: 0 auto;
 }
 
 .simple-header-content h1 {
-    font-size: 36px;
+    color: white !important;
+    font-size: 3.5rem !important;
     font-weight: 800;
-    color: #0f172a;
-    margin-bottom: 8px;
-    letter-spacing: -1.5px;
+    margin-bottom: 16px;
+    letter-spacing: -2px !important;
 }
 
 .simple-header-content p {
-    font-size: 16px;
-    color: #64748b;
+    color: #94a3b8 !important;
+    font-size: 1.15rem !important;
     font-weight: 500;
 }
 
-.intel-btn-primary {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 12px 24px;
-    background: var(--primary);
-    color: #fff;
-    border: none;
-    border-radius: 14px;
-    font-weight: 700;
-    font-size: 14px;
-    cursor: pointer;
-    transition: all 0.3s;
-    box-shadow: 0 4px 12px rgba(26, 167, 156, 0.2);
-    width: fit-content;
+/* Grid Layout */
+.ex-manifest {
+    max-width: 1240px;
+    margin: -50px auto 0 !important;
+    padding: 0 20px;
+    position: relative;
+    z-index: 20;
 }
 
-.intel-btn-primary:hover {
-    background: var(--primary-hover);
-    transform: translateY(-2px);
-    box-shadow: 0 10px 25px rgba(26, 167, 156, 0.3);
-}
-
-.favorites-page .intel-simple-header .intel-btn-primary {
-    width: 500px;
-    justify-content: center;
-}
-
-.intel-grid-view {
+.ex-grid-view {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: 32px;
 }
 
-.intel-stay-card {
-    background: #fff;
-    border-radius: 24px;
-    overflow: hidden;
-    border: 1px solid #e2e8f0;
-    transition: all 0.4s cubic-bezier(.16, 1, .3, 1);
-    cursor: pointer;
-    position: relative;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
-}
-
-.intel-stay-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 20px 40px -5px rgba(0, 0, 0, 0.1);
-    border-color: rgba(26, 167, 156, 0.3);
-}
-
-.intel-img-container {
-    height: 260px;
-    position: relative;
-    overflow: hidden;
-}
-
-.intel-main-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform .8s cubic-bezier(.16, 1, .3, 1);
-}
-
-.intel-stay-card:hover .intel-main-img {
-    transform: scale(1.08);
-}
-
-.intel-badge-vial {
-    padding: 8px 16px;
-    background: #fff;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    color: #0f172a;
-    font-size: 13px;
-    font-weight: 800;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.intel-wish-btn {
-    width: 44px;
-    height: 44px;
-    background: #fff;
-    border: none;
-    border-radius: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    cursor: pointer;
-}
-
-.img-dots {
-    display: flex;
-    gap: 6px;
-    background: rgba(0, 0, 0, 0.3);
-    padding: 6px 10px;
-    border-radius: 20px;
-    backdrop-filter: blur(4px);
-}
-
-.dot {
-    width: 6px;
-    height: 6px;
-    background: rgba(255, 255, 255, 0.5);
-    border-radius: 50%;
-}
-
-.dot.active {
-    background: #fff;
-    width: 16px;
-    border-radius: 10px;
-}
-
-.intel-rating-vial {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 14px;
-    background: #0f172a;
-    border-radius: 10px;
-    color: #fff;
-    font-size: 13px;
-    font-weight: 700;
-}
-
-.intel-card-body {
-    padding: 24px;
-}
-
-.intel-tag {
-    font-size: 11px;
-    font-weight: 900;
-    color: #115e59;
-    background: #ccfbf1;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    padding: 6px 12px;
-    border-radius: 8px;
-}
-
-.intel-price-node .value {
-    font-size: 24px;
-    font-weight: 800;
-    color: #0f172a;
-}
-
-.intel-prop-name {
-    font-size: 20px;
-    font-weight: 800;
-    color: #0f172a;
-    margin-bottom: 8px;
-}
-
-.intel-location {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: #64748b;
-    font-size: 15px;
-    margin-bottom: 24px;
-    font-weight: 500;
-}
-
-.intel-empty-state {
-    grid-column: 1 / -1;
-    padding: 100px;
-    text-align: center;
-    background: #fff;
+/* Empty State Styling */
+.ex-empty-state {
+    background: white;
     border-radius: 32px;
-    border: 2px dashed #e2e8f0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    padding: 100px 40px !important;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.03);
+    border: 1px solid rgba(226, 232, 240, 0.8) !important;
+    text-align: center;
 }
 
-.empty-icon-circle {
-    width: 80px;
-    height: 80px;
-    background: #fff;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #cbd5e1;
-    margin-bottom: 24px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+.ex-empty-icon-box {
+    width: 120px !important;
+    height: 120px !important;
+    background: #f8fafc !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e2e8f0 !important;
+    margin-bottom: 30px !important;
 }
 
-.intel-empty-state h3 {
-    font-size: 24px;
-    font-weight: 800;
+.ex-empty-state h3 {
+    font-size: 2rem !important;
     color: #0f172a;
-    margin-bottom: 8px;
 }
 
-@media(max-width:768px) {
-    .intel-simple-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 24px;
-        padding: 32px 20px 0;
+.ex-reset-btn {
+    background: #1aa79c;
+    color: white;
+    padding: 16px 32px;
+    border-radius: 16px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 8px 20px rgba(26, 167, 156, 0.25);
+}
+
+.ex-reset-btn:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 28px rgba(26, 167, 156, 0.35);
+}
+
+@media (max-width: 768px) {
+    .simple-header-content h1 {
+        font-size: 2.5rem !important;
+    }
+
+    .ex-grid-view {
+        grid-template-columns: 1fr;
     }
 }

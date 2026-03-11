@@ -14,9 +14,10 @@ L.Icon.Default.mergeOptions({
     shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 import './properties.css';
+import PropertyRegistrationModal from './PropertyRegistrationModal';
 
 import { auth } from '../firebase';
-import { subscribeToProperties, addProperty, addPost, deleteProperty, convertToBase64, requestPropertyEdit, subscribeToRenters, addRenter, updateRenter, deleteRenter } from '../services/dataService';
+import { subscribeToProperties, addProperty, addPost, deleteProperty, deletePost, compressImage, uploadImage, requestPropertyEdit, subscribeToRenters, addRenter, updateRenter, deleteRenter } from '../services/dataService';
 
 export default function PropertiesPage({ userId }) {
     const [activeFilter, setActiveFilter] = React.useState('All');
@@ -232,7 +233,8 @@ export default function PropertiesPage({ userId }) {
         weeklyRent: '',
         rentType: 'Monthly',
         postDetails: '',
-        roomConfigurations: [{ type: '1x Sharing', customType: '', count: '', rentType: 'Monthly', rentAmount: '' }]
+        roomConfigurations: [{ type: '1x Sharing', customType: '', count: '', rentType: 'Monthly', rentAmount: '', advancePayment: '', images: [], imagePreviews: [] }],
+        bhkAllocations: [{ bhkType: '1BHK', count: '', pricePerUnit: '', rentType: 'Monthly', advancePayment: '', images: [], imagePreviews: [] }]
     });
 
     const handlePublishInputChange = (e) => {
@@ -313,13 +315,14 @@ export default function PropertiesPage({ userId }) {
             dailyRent: property.dailyRent || features.dailyRent || '',
             rentType: 'Monthly',
             postDetails: property.postDetails || '',
-            roomConfigurations: property.roomConfigurations || [{
+            roomConfigurations: (property.roomConfigurations || [{
                 type: (features.roomType && features.roomType !== 'Not Specified' ? features.roomType : null) || property.roomType || '1x Sharing',
                 customType: '',
                 count: totalUnits || '',
                 rentType: 'Monthly',
                 rentAmount: features.monthlyRent || (property.rent && property.rent !== '₹0' ? property.rent.replace('₹', '') : '') || ''
-            }]
+            }]).map(conf => ({ ...conf, images: conf.images || [], imagePreviews: conf.imagePreviews || [] })),
+            bhkAllocations: (property.bhkAllocations || [{ bhkType: '1BHK', count: '', pricePerUnit: '', rentType: 'Monthly' }]).map(alloc => ({ ...alloc, images: alloc.images || [], imagePreviews: alloc.imagePreviews || [] }))
         });
         setIsPublishModalOpen(true);
         setSelectedImages([]);
@@ -338,6 +341,34 @@ export default function PropertiesPage({ userId }) {
 
         const newPreviews = files.map(file => URL.createObjectURL(file));
         setImagePreviews(prev => [...prev, ...newPreviews]);
+    };
+
+    const handleRowImageChange = (e, type, idx) => {
+        const files = Array.from(e.target.files);
+        setPublishDetails(prev => {
+            const list = type === 'bhk' ? [...prev.bhkAllocations] : [...prev.roomConfigurations];
+            const currentImages = list[idx].images || [];
+            const currentPreviews = list[idx].imagePreviews || [];
+
+            if (files.length + currentImages.length > 8) {
+                alert("Maximum 8 images per configuration allowed.");
+                return prev;
+            }
+
+            list[idx].images = [...currentImages, ...files];
+            list[idx].imagePreviews = [...currentPreviews, ...files.map(f => URL.createObjectURL(f))];
+
+            return { ...prev, [type === 'bhk' ? 'bhkAllocations' : 'roomConfigurations']: list };
+        });
+    };
+
+    const handleRemoveRowImage = (type, rowIdx, imgIdx) => {
+        setPublishDetails(prev => {
+            const list = type === 'bhk' ? [...prev.bhkAllocations] : [...prev.roomConfigurations];
+            list[rowIdx].images = list[rowIdx].images.filter((_, i) => i !== imgIdx);
+            list[rowIdx].imagePreviews = list[rowIdx].imagePreviews.filter((_, i) => i !== imgIdx);
+            return { ...prev, [type === 'bhk' ? 'bhkAllocations' : 'roomConfigurations']: list };
+        });
     };
 
 
@@ -826,21 +857,13 @@ export default function PropertiesPage({ userId }) {
                         <IoOptionsOutline size={20} />
                     </button>
                     <button
-                        className="pp-register-btn mobile-hide"
+                        className="pp-register-btn"
                         onClick={() => setIsRegisterModalOpen(true)}
                     >
                         Register Property
                     </button>
                 </div>
             </div>
-
-            {/* Mobile FAB */}
-            <button
-                className="mobile-fab mobile-show"
-                onClick={() => setIsRegisterModalOpen(true)}
-            >
-                <IoRocketOutline size={24} />
-            </button>
 
             {/* Tabs */}
             <div className="pp-tabs">
@@ -949,784 +972,224 @@ export default function PropertiesPage({ userId }) {
                 )}
             </div>
 
-            {isRegisterModalOpen && (
-                <div className="pp-modal-overlay">
-                    <div className="pp-modal-content" style={{ width: '600px', maxWidth: '95vw', overflow: 'hidden' }}>
-                        <div className="pp-modal-header" style={{
-                            background: 'linear-gradient(135deg, var(--pp-primary) 0%, #148f85 100%)',
-                            color: 'white',
-                            flexDirection: 'column',
-                            alignItems: 'stretch',
-                            padding: '16px 20px'
-                        }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                                <h3 style={{ margin: 0, color: 'white' }}>Property Registration</h3>
-                                <button className="pp-close-btn pp-close-btn-light" onClick={() => setIsRegisterModalOpen(false)}>
-                                    <IoCloseOutline size={22} />
-                                </button>
-                            </div>
+            {/* Reusable Property Registration Modal */}
+            <PropertyRegistrationModal
+                isOpen={isRegisterModalOpen}
+                onClose={() => setIsRegisterModalOpen(false)}
+                userId={userId}
+                onComplete={async (finalData) => {
+                    try {
+                        const uid = userId || auth.currentUser?.uid;
+                        await addProperty({ ...finalData, ownerId: uid });
+                        // subscribeToProperties will update the UI automatically
+                    } catch (error) {
+                        console.error("Error adding property:", error);
+                    }
+                }}
+            />
 
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                {[1, 2, 3, 4].map((step) => (
-                                    <div key={step} style={{ display: 'flex', alignItems: 'center', flex: step === 4 ? 'none' : 1 }}>
-                                        <div style={{
-                                            width: '28px',
-                                            height: '28px',
-                                            borderRadius: '50%',
-                                            background: registrationStep >= step ? 'white' : 'rgba(255,255,255,0.3)',
-                                            color: registrationStep >= step ? '#1aa79c' : 'white',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            fontSize: '14px',
-                                            fontWeight: '700'
-                                        }}>
-                                            {registrationStep > step ? <IoCheckmarkCircleOutline size={20} /> : step}
-                                        </div>
-                                        {step < 4 && (
+
+
+
+            {
+                isEditModalOpen && (
+                    <div className="pp-modal-overlay">
+                        <div className="pp-modal-content" style={{ width: '500px', maxWidth: '90vw', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                            <div className="pp-modal-header" style={{
+                                background: 'linear-gradient(135deg, #1aa79c 0%, #148f85 100%)',
+                                color: 'white',
+                                flexDirection: 'column',
+                                alignItems: 'stretch',
+                                padding: '16px 20px'
+                            }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                                    <h3 style={{ margin: 0, color: 'white' }}>Edit Property Details</h3>
+                                    <button className="pp-close-btn pp-close-btn-light" onClick={() => setIsEditModalOpen(false)}>
+                                        <IoCloseOutline size={22} />
+                                    </button>
+                                </div>
+
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    {[1, 2].map((step) => (
+                                        <div key={step} style={{ display: 'flex', alignItems: 'center', flex: step === 2 ? 'none' : 1 }}>
                                             <div style={{
-                                                height: '2px',
-                                                flex: 1,
-                                                background: registrationStep > step ? 'white' : 'rgba(255,255,255,0.3)',
-                                                margin: '0 8px'
-                                            }} />
-                                        )}
-                                    </div>
-                                ))}
+                                                width: '28px',
+                                                height: '28px',
+                                                borderRadius: '50%',
+                                                background: registrationStep >= step ? 'white' : 'rgba(255,255,255,0.3)',
+                                                color: registrationStep >= step ? '#1aa79c' : 'white',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                fontSize: '14px',
+                                                fontWeight: '700'
+                                            }}>
+                                                {registrationStep > step ? <IoCheckmarkCircleOutline size={20} /> : step}
+                                            </div>
+                                            {step < 2 && (
+                                                <div style={{
+                                                    height: '2px',
+                                                    flex: 1,
+                                                    background: registrationStep > step ? 'white' : 'rgba(255,255,255,0.3)',
+                                                    margin: '0 8px'
+                                                }} />
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px', fontSize: '12px', fontWeight: '600' }}>
+                                    <span style={{ opacity: registrationStep >= 1 ? 1 : 0.6 }}>Basic Info</span>
+                                    <span style={{ opacity: registrationStep >= 2 ? 1 : 0.6 }}>Location</span>
+                                </div>
                             </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px', fontSize: '12px', fontWeight: '600' }}>
-                                <span style={{ opacity: registrationStep >= 1 ? 1 : 0.6 }}>Basic Info</span>
-                                <span style={{ opacity: registrationStep >= 2 ? 1 : 0.6 }}>Location</span>
-                                <span style={{ opacity: registrationStep >= 3 ? 1 : 0.6 }}>Confirmation</span>
-                                <span style={{ opacity: registrationStep >= 4 ? 1 : 0.6 }}>Complete</span>
-                            </div>
-                        </div>
 
-                        <div className="pp-modal-body">
-                            {/* Step 1: Type & Info */}
-                            {registrationStep === 1 && (
-                                <div style={{ animation: 'ppFadeIn 0.4s ease' }}>
-                                    <div className="pp-modal-section-title">
-                                        <IoInformationCircleOutline size={16} />
-                                        Property Type & Basic Details
-                                    </div>
-                                    <div className="pp-form-group">
-                                        <label>What type of property is this?</label>
-                                        <div style={{
-                                            display: 'flex',
-                                            background: '#f3f4f6',
-                                            padding: '4px',
-                                            borderRadius: '12px',
-                                            gap: '4px'
-                                        }}>
-                                            <button
-                                                onClick={() => setPropertyType('Apartment')}
-                                                style={{
-                                                    flex: 1,
-                                                    padding: '10px',
-                                                    border: 'none',
-                                                    borderRadius: '10px',
-                                                    background: propertyType === 'Apartment' ? 'white' : 'transparent',
-                                                    boxShadow: propertyType === 'Apartment' ? '0 2px 4px rgba(0,0,0,0.05)' : 'none',
-                                                    color: propertyType === 'Apartment' ? '#1aa79c' : '#6b7280',
-                                                    fontWeight: '600',
-                                                    cursor: 'pointer',
-                                                    transition: 'all 0.2s'
-                                                }}
-                                            >
-                                                Apartment
-                                            </button>
-                                            <button
-                                                onClick={() => setPropertyType('PGs')}
-                                                style={{
-                                                    flex: 1,
-                                                    padding: '10px',
-                                                    border: 'none',
-                                                    borderRadius: '10px',
-                                                    background: propertyType === 'PGs' ? 'white' : 'transparent',
-                                                    boxShadow: propertyType === 'PGs' ? '0 2px 4px rgba(0,0,0,0.05)' : 'none',
-                                                    color: propertyType === 'PGs' ? '#1aa79c' : '#6b7280',
-                                                    fontWeight: '600',
-                                                    cursor: 'pointer',
-                                                    transition: 'all 0.2s'
-                                                }}
-                                            >
-                                                PG / Hostel
-                                            </button>
-                                            <button
-                                                onClick={() => setPropertyType('Room')}
-                                                style={{
-                                                    flex: 1,
-                                                    padding: '10px',
-                                                    border: 'none',
-                                                    borderRadius: '10px',
-                                                    background: propertyType === 'Room' ? 'white' : 'transparent',
-                                                    boxShadow: propertyType === 'Room' ? '0 2px 4px rgba(0,0,0,0.05)' : 'none',
-                                                    color: propertyType === 'Room' ? '#1aa79c' : '#6b7280',
-                                                    fontWeight: '600',
-                                                    cursor: 'pointer',
-                                                    transition: 'all 0.2s'
-                                                }}
-                                            >
-                                                Rooms
-                                            </button>
+                            <div className="pp-modal-body">
+                                {registrationStep === 1 && (
+                                    <div style={{ animation: 'ppFadeIn 0.4s ease' }}>
+                                        <div className="pp-modal-section-title">
+                                            <IoInformationCircleOutline size={16} />
+                                            Basic Details
                                         </div>
-                                    </div>
 
-                                    <div className="pp-form-grid">
-                                        <div className="pp-form-group">
-                                            <label>{propertyType === 'Apartment' ? 'Manager Name' : (propertyType === 'PGs' ? 'PG Warden Name' : 'Manager Name')} <span style={{ color: '#ef4444' }}>*</span></label>
-                                            <input
-                                                type="text"
-                                                name="managerName"
-                                                value={propertyType === 'Apartment' ? apartmentDetails.managerName : (propertyType === 'PGs' ? pgDetails.managerName : roomDetails.managerName)}
-                                                onChange={(e) => {
-                                                    handleInputChange(e);
-                                                    setErrorFields(prev => prev.filter(f => f !== 'managerName'));
-                                                }}
-                                                className={`pp-form-input ${errorFields.includes('managerName') ? 'error' : ''}`}
-                                                placeholder={propertyType === 'Apartment' ? "e.g. Anand" : "e.g. Mrs. Sharma"}
-                                            />
-                                        </div>
-                                        <div className="pp-form-group">
-                                            <label>{propertyType === 'Apartment' ? 'Apartment Name' : (propertyType === 'PGs' ? 'PG Name' : 'Hotel/Room Name')} <span style={{ color: '#ef4444' }}>*</span></label>
-                                            <input
-                                                type="text"
-                                                name={propertyType === 'Apartment' ? "apartmentName" : (propertyType === 'PGs' ? "pgName" : "roomName")}
-                                                value={propertyType === 'Apartment' ? apartmentDetails.apartmentName : (propertyType === 'PGs' ? pgDetails.pgName : roomDetails.roomName)}
-                                                onChange={(e) => {
-                                                    handleInputChange(e);
-                                                    setErrorFields(prev => prev.filter(f => f !== (propertyType === 'Apartment' ? 'apartmentName' : (propertyType === 'PGs' ? 'pgName' : 'roomName'))));
-                                                }}
-                                                className={`pp-form-input ${errorFields.includes(propertyType === 'Apartment' ? 'apartmentName' : (propertyType === 'PGs' ? 'pgName' : 'roomName')) ? 'error' : ''}`}
-                                                placeholder={propertyType === 'Apartment' ? "e.g. Green Meadows" : "e.g. Comfort Stay"}
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="pp-form-grid">
-                                        <div className="pp-form-group">
-                                            <label>CONTACT NUMBER <span style={{ color: '#ef4444' }}>*</span></label>
-                                            <input
-                                                type="text"
-                                                name="contactNumber"
-                                                value={propertyType === 'Apartment' ? apartmentDetails.contactNumber : (propertyType === 'PGs' ? pgDetails.contactNumber : roomDetails.contactNumber)}
-                                                onChange={(e) => {
-                                                    handleInputChange(e);
-                                                    setErrorFields(prev => prev.filter(f => f !== 'contactNumber'));
-                                                }}
-                                                className={`pp-form-input ${errorFields.includes('contactNumber') ? 'error' : ''}`}
-                                                placeholder="e.g. 9876543210"
-                                            />
-                                        </div>
-                                        <div className="pp-form-group">
-                                            <label>EMAIL ADDRESS <span style={{ color: '#ef4444' }}>*</span></label>
-                                            <input
-                                                type="email"
-                                                name="email"
-                                                value={propertyType === 'Apartment' ? apartmentDetails.email : (propertyType === 'PGs' ? pgDetails.email : roomDetails.email)}
-                                                onChange={(e) => {
-                                                    handleInputChange(e);
-                                                    setErrorFields(prev => prev.filter(f => f !== 'email'));
-                                                }}
-                                                className={`pp-form-input ${errorFields.includes('email') ? 'error' : ''}`}
-                                                placeholder="e.g. manager@stayzen.com"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="pp-form-grid">
-                                        <div className="pp-form-group">
-                                            <label>Total Rooms/Units <span style={{ color: '#ef4444' }}>*</span></label>
-                                            <input
-                                                type="number"
-                                                name={propertyType === 'Apartment' ? "totalFlats" : "totalRooms"}
-                                                value={propertyType === 'Apartment' ? apartmentDetails.totalFlats : (propertyType === 'PGs' ? pgDetails.totalRooms : roomDetails.totalRooms)}
-                                                onChange={(e) => {
-                                                    handleInputChange(e);
-                                                    setErrorFields(prev => prev.filter(f => f !== (propertyType === 'Apartment' ? 'totalFlats' : 'totalRooms')));
-                                                }}
-                                                className={`pp-form-input ${errorFields.includes(propertyType === 'Apartment' ? 'totalFlats' : 'totalRooms') ? 'error' : ''}`}
-                                                placeholder="e.g. 10"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    {propertyType === 'Apartment' ? (
                                         <div className="pp-form-grid">
                                             <div className="pp-form-group">
-                                                <label>Lift Facility <span style={{ color: '#ef4444' }}>*</span></label>
-                                                <select name="liftAvailable" value={apartmentDetails.liftAvailable} onChange={handleInputChange} className="pp-form-select">
-                                                    <option value="Yes">Yes</option>
-                                                    <option value="No">No</option>
-                                                </select>
+                                                <label>{propertyType === 'Apartment' ? 'Manager Name' : 'PG Warden Name'} <span style={{ color: '#ef4444' }}>*</span></label>
+                                                <input
+                                                    type="text"
+                                                    name="managerName"
+                                                    value={propertyType === 'Apartment' ? apartmentDetails.managerName : pgDetails.managerName}
+                                                    onChange={handleInputChange}
+                                                    className="pp-form-input"
+                                                />
                                             </div>
                                             <div className="pp-form-group">
-                                                <label>Parking Available <span style={{ color: '#ef4444' }}>*</span></label>
-                                                <select name="parkingAvailable" value={apartmentDetails.parkingAvailable} onChange={handleInputChange} className="pp-form-select">
-                                                    <option value="Yes">Yes</option>
-                                                    <option value="No">No</option>
-                                                </select>
+                                                <label>{propertyType === 'Apartment' ? 'Apartment Name' : 'PG Name'} <span style={{ color: '#ef4444' }}>*</span></label>
+                                                <input
+                                                    type="text"
+                                                    name={propertyType === 'Apartment' ? "apartmentName" : "pgName"}
+                                                    value={propertyType === 'Apartment' ? apartmentDetails.apartmentName : pgDetails.pgName}
+                                                    onChange={handleInputChange}
+                                                    className="pp-form-input"
+                                                />
                                             </div>
                                         </div>
-                                    ) : propertyType === 'PGs' ? (
-                                        <div className="pp-form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                                            <div className="pp-form-group">
-                                                <label>PG For <span style={{ color: '#ef4444' }}>*</span></label>
-                                                <select name="pgType" value={pgDetails.pgType} onChange={handleInputChange} className="pp-form-select">
-                                                    <option value="Girls PG">Girls PG</option>
-                                                    <option value="Boys PG">Boys PG</option>
-                                                    <option value="Co-Living">Co-Living</option>
-                                                </select>
-                                            </div>
-                                            <div className="pp-form-group">
-                                                <label>AC Available <span style={{ color: '#ef4444' }}>*</span></label>
-                                                <select name="isProvidingAC" value={pgDetails.isProvidingAC} onChange={handleInputChange} className="pp-form-select">
-                                                    <option value="Yes">Yes</option>
-                                                    <option value="No">No</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                    ) : null}
-                                </div>
-                            )}
 
-                            {/* Step 2: Location */}
-                            {registrationStep === 2 && (
-                                <div style={{ animation: 'ppFadeIn 0.4s ease' }}>
-                                    <div className="pp-modal-section-title">
-                                        <IoLocateOutline size={16} />
-                                        Set Property Location
-                                    </div>
-                                    <div className="pp-form-grid">
-                                        <div className="pp-form-group">
-                                            <label>STATE & CITY <span style={{ color: '#ef4444' }}>*</span></label>
-                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                                        <div className="pp-form-grid">
+                                            <div className="pp-form-group">
+                                                <label>Contact Number <span style={{ color: '#ef4444' }}>*</span></label>
                                                 <input
                                                     type="text"
-                                                    name="state"
-                                                    value={propertyType === 'Apartment' ? apartmentDetails.state : (propertyType === 'PGs' ? pgDetails.state : roomDetails.state)}
-                                                    onChange={(e) => {
-                                                        handleInputChange(e);
-                                                        setErrorFields(prev => prev.filter(f => f !== 'state'));
-                                                    }}
-                                                    className={`pp-form-input ${errorFields.includes('state') ? 'error' : ''}`}
-                                                    placeholder="State"
+                                                    name="contactNumber"
+                                                    value={propertyType === 'Apartment' ? apartmentDetails.contactNumber : pgDetails.contactNumber}
+                                                    onChange={handleInputChange}
+                                                    className="pp-form-input"
                                                 />
+                                            </div>
+                                            <div className="pp-form-group">
+                                                <label>Email Address</label>
                                                 <input
-                                                    type="text"
-                                                    name="city"
-                                                    value={propertyType === 'Apartment' ? apartmentDetails.city : (propertyType === 'PGs' ? pgDetails.city : roomDetails.city)}
-                                                    onChange={(e) => {
-                                                        handleInputChange(e);
-                                                        setErrorFields(prev => prev.filter(f => f !== 'city'));
-                                                    }}
-                                                    className={`pp-form-input ${errorFields.includes('city') ? 'error' : ''}`}
-                                                    placeholder="City"
+                                                    type="email"
+                                                    name="email"
+                                                    value={propertyType === 'Apartment' ? apartmentDetails.email : pgDetails.email}
+                                                    onChange={handleInputChange}
+                                                    className="pp-form-input"
                                                 />
                                             </div>
                                         </div>
-                                        <div className="pp-form-group">
-                                            <label>AREA & PINCODE <span style={{ color: '#ef4444' }}>*</span></label>
-                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+
+                                        <div className="pp-form-grid">
+                                            <div className="pp-form-group">
+                                                <label>{propertyType === 'Apartment' ? 'Total Flats' : 'Total Rooms'} <span style={{ color: '#ef4444' }}>*</span></label>
                                                 <input
-                                                    type="text"
-                                                    name="colonyArea"
-                                                    value={propertyType === 'Apartment' ? apartmentDetails.colonyArea : (propertyType === 'PGs' ? pgDetails.colonyArea : roomDetails.colonyArea)}
-                                                    onChange={(e) => {
-                                                        handleInputChange(e);
-                                                        setErrorFields(prev => prev.filter(f => f !== 'colonyArea'));
-                                                    }}
-                                                    className={`pp-form-input ${errorFields.includes('colonyArea') ? 'error' : ''}`}
-                                                    placeholder="Colony / Area"
+                                                    type="number"
+                                                    name={propertyType === 'Apartment' ? "totalFlats" : "totalRooms"}
+                                                    value={propertyType === 'Apartment' ? apartmentDetails.totalFlats : pgDetails.totalRooms}
+                                                    onChange={handleInputChange}
+                                                    className="pp-form-input"
                                                 />
-                                                <input
-                                                    type="text"
-                                                    name="pincode"
-                                                    value={propertyType === 'Apartment' ? apartmentDetails.pincode : (propertyType === 'PGs' ? pgDetails.pincode : roomDetails.pincode)}
-                                                    onChange={(e) => {
-                                                        handleInputChange(e);
-                                                        setErrorFields(prev => prev.filter(f => f !== 'pincode'));
-                                                        if (e.target.value.length === 6) handlePincodeLookup(e.target.value);
-                                                    }}
-                                                    className={`pp-form-input ${errorFields.includes('pincode') ? 'error' : ''}`}
-                                                    placeholder="6-digit pincode"
-                                                    maxLength={6}
-                                                />
+                                            </div>
+                                            <div className="pp-form-group">
+                                                <label>Lift Available</label>
+                                                <select
+                                                    name="liftAvailable"
+                                                    value={propertyType === 'Apartment' ? apartmentDetails.liftAvailable : pgDetails.liftAvailable}
+                                                    onChange={handleInputChange}
+                                                    className="pp-form-select"
+                                                >
+                                                    <option value="Yes">Yes</option>
+                                                    <option value="No">No</option>
+                                                </select>
                                             </div>
                                         </div>
                                     </div>
+                                )}
 
-                                    <div className="pp-form-group">
-                                        <label>Google Maps URL / Search <span style={{ color: '#ef4444' }}>*</span></label>
-                                        <div className="pp-location-search-wrapper">
-                                            <div style={{ display: 'flex', gap: '10px', marginBottom: '12px' }}>
+                                {registrationStep === 2 && (
+                                    <div style={{ animation: 'ppFadeIn 0.4s ease' }}>
+                                        <div className="pp-modal-section-title">
+                                            <IoLocateOutline size={16} />
+                                            Update Location
+                                        </div>
+
+                                        <div className="pp-form-group">
+                                            <label>Google Maps Link or Search Location</label>
+                                            <div className="pp-location-search-wrapper" ref={searchResultRef}>
                                                 <input
                                                     type="text"
                                                     name="googleMapsLink"
-                                                    value={propertyType === 'Apartment' ? apartmentDetails.googleMapsLink : (propertyType === 'PGs' ? pgDetails.googleMapsLink : roomDetails.googleMapsLink)}
-                                                    onChange={(e) => {
-                                                        handleInputChange(e);
-                                                        setErrorFields(prev => prev.filter(f => f !== 'googleMapsLink'));
-                                                    }}
-                                                    className={`pp-form-input ${errorFields.includes('googleMapsLink') ? 'error' : ''}`}
-                                                    placeholder="Search area, colony or paste maps link..."
-                                                    style={{ flex: 1 }}
+                                                    placeholder="Paste Google Maps link or type area name..."
+                                                    value={propertyType === 'Apartment' ? apartmentDetails.googleMapsLink : pgDetails.googleMapsLink}
+                                                    onChange={handleInputChange}
+                                                    className="pp-form-input"
                                                 />
-                                                <button
-                                                    type="button"
-                                                    onClick={handleCurrentLocation}
-                                                    className="pp-btn-outline"
-                                                    disabled={isSearchingLocation}
-                                                    style={{ width: 'auto', padding: '0 12px', height: '40px', color: '#ef4444', borderColor: '#fee2e2', opacity: isSearchingLocation ? 0.6 : 1 }}
-                                                    title="Use Live Location"
-                                                >
-                                                    <IoLocateOutline size={18} className={isSearchingLocation ? "pp-spin" : ""} />
-                                                </button>
+                                                {isSearchingLocation && <div className="pp-search-loader"></div>}
+                                                {searchResults.length > 0 && (
+                                                    <div className="pp-search-results">
+                                                        {searchResults.map((item, i) => (
+                                                            <div key={i} className="pp-search-item" onClick={() => handleSelectLocation(item)}>
+                                                                <IoLocationOutline size={16} />
+                                                                <span>{item.display_name}</span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
                                             </div>
+                                        </div>
 
-                                            {/* Integrated Search Suggestions */}
-                                            {(searchResults.length > 0 || isSearchingLocation) && (
-                                                <div className="pp-search-dropdown" ref={searchResultRef}>
-                                                    {isSearchingLocation ? (
-                                                        <div className="pp-search-loading">Searching locations...</div>
-                                                    ) : (
-                                                        searchResults.map((item, idx) => (
-                                                            <button
-                                                                key={idx}
-                                                                className="pp-search-result-item"
-                                                                onClick={() => handleSelectLocation(item)}
-                                                            >
-                                                                <div className="item-icon">
-                                                                    {idx === 0 ? <IoTimeOutline size={18} /> : <IoLocationOutline size={18} />}
-                                                                </div>
-                                                                <div className="item-details">
-                                                                    <div className="item-name">{item.main_text || item.address?.name || item.display_name.split(',')[0]}</div>
-                                                                    <div className="item-sub">{item.secondary_text || item.display_name}</div>
-                                                                </div>
-                                                                <div className="item-arrow">
-                                                                    <IoArrowUpOutline size={18} />
-                                                                </div>
-                                                            </button>
-                                                        ))
-                                                    )}
-                                                </div>
-                                            )}
+                                        <div className="pp-form-grid">
+                                            <div className="pp-form-group">
+                                                <label>City</label>
+                                                <input type="text" name="city" value={propertyType === 'Apartment' ? apartmentDetails.city : pgDetails.city} onChange={handleInputChange} className="pp-form-input" />
+                                            </div>
+                                            <div className="pp-form-group">
+                                                <label>State</label>
+                                                <input type="text" name="state" value={propertyType === 'Apartment' ? apartmentDetails.state : pgDetails.state} onChange={handleInputChange} className="pp-form-input" />
+                                            </div>
                                         </div>
                                     </div>
+                                )}
+                            </div>
 
-                                    <div style={{
-                                        height: '240px',
-                                        borderRadius: '14px',
-                                        overflow: 'hidden',
-                                        border: '1px solid var(--pp-border)',
-                                        background: '#f1f5f9',
-                                        position: 'relative',
-                                        zIndex: 1
-                                    }}>
-                                        <MapContainer center={mapCenter} zoom={13} style={{ height: '100%', width: '100%' }}>
-                                            <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                                            <LocationMarker
-                                                position={markerPosition}
-                                                onPositionChange={(pos) => {
-                                                    const newPos = [pos.lat, pos.lng];
-                                                    setMarkerPosition(newPos);
-                                                    const link = `https://www.google.com/maps?q=${pos.lat},${pos.lng}`;
-                                                    const updates = { googleMapsLink: link };
-                                                    setErrorFields(prev => prev.filter(f => f !== 'googleMapsLink'));
-                                                    if (propertyType === 'Apartment') {
-                                                        setApartmentDetails(prev => ({ ...prev, ...updates }));
-                                                    } else if (propertyType === 'PGs') {
-                                                        setPgDetails(prev => ({ ...prev, ...updates }));
-                                                    } else {
-                                                        setRoomDetails(prev => ({ ...prev, ...updates }));
-                                                    }
-                                                }}
-                                            />
-                                            <RecenterMap center={mapCenter} />
-                                        </MapContainer>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Step 3: Confirmation */}
-                            {registrationStep === 3 && (
-                                <div style={{ animation: 'ppFadeIn 0.4s ease', textAlign: 'center', padding: '20px 0' }}>
-                                    <div style={{ width: '80px', height: '80px', background: 'var(--pp-primary-light)', color: 'var(--pp-primary)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
-                                        <IoCheckmarkCircleOutline size={48} />
-                                    </div>
-                                    <h4 style={{ fontSize: '20px', fontWeight: '700', color: 'var(--pp-text-main)', margin: '0 0 12px 0' }}>All Set!</h4>
-                                    <p style={{ color: 'var(--pp-text-sec)', fontSize: '15px', lineHeight: '1.6', margin: 0 }}>
-                                        Your property details have been captured. Please confirm to submit your registration for approval.
-                                    </p>
-                                </div>
-                            )}
-
-                            {/* Step 4: Success Message */}
-                            {registrationStep === 4 && (
-                                <div style={{ animation: 'ppFadeIn 0.4s ease', textAlign: 'center', padding: '40px 0' }}>
-                                    <div style={{
-                                        width: '100px',
-                                        height: '100px',
-                                        background: '#ecfdf5',
-                                        color: '#10b981',
-                                        borderRadius: '50%',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        margin: '0 auto 24px',
-                                        boxShadow: '0 10px 15px -3px rgba(16, 185, 129, 0.1)'
-                                    }}>
-                                        <IoRocketOutline size={50} />
-                                    </div>
-                                    <h4 style={{ fontSize: '24px', fontWeight: '800', color: 'var(--pp-text-main)', margin: '0 0 12px 0' }}>Registration Sent!</h4>
-                                    <p style={{ color: 'var(--pp-text-sec)', fontSize: '16px', lineHeight: '1.6', maxWidth: '300px', margin: '0 auto' }}>
-                                        Your {propertyType} registration is being reviewed by our admin. You'll be notified once it's approved.
-                                    </p>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Wizard Footer */}
-                        <div className="pp-modal-footer">
-                            <button
-                                className="pp-secondary-btn"
-                                onClick={() => registrationStep === 1 ? setIsRegisterModalOpen(false) : setRegistrationStep(s => s - 1)}
-                                style={{ display: registrationStep === 4 ? 'none' : 'block' }}
-                            >
-                                {registrationStep === 1 ? 'Cancel' : 'Back'}
-                            </button>
-
-                            {registrationStep < 3 ? (
-                                <button
-                                    className="pp-primary-btn"
-                                    onClick={() => {
-                                        const errors = [];
-                                        if (registrationStep === 1) {
-                                            const isApt = propertyType === 'Apartment';
-                                            const isRoom = propertyType === 'Room';
-                                            const details = isApt ? apartmentDetails : (isRoom ? roomDetails : pgDetails);
-
-                                            if (!details.managerName) errors.push("managerName");
-                                            if (isApt && !details.apartmentName) errors.push("apartmentName");
-                                            if (propertyType === 'PGs' && !details.pgName) errors.push("pgName");
-                                            if (isRoom && !details.roomName) errors.push("roomName");
-                                            if (!details.contactNumber) errors.push("contactNumber");
-                                            if (!details.email) errors.push("email");
-                                            if (isApt && !details.totalFlats) errors.push("totalFlats");
-                                            if ((propertyType === 'PGs' || isRoom) && !details.totalRooms) errors.push("totalRooms");
-                                        } else if (registrationStep === 2) {
-                                            const details = propertyType === 'Apartment' ? apartmentDetails : (propertyType === 'PGs' ? pgDetails : roomDetails);
-
-                                            if (!details.state) errors.push("state");
-                                            if (!details.city) errors.push("city");
-                                            if (!details.colonyArea) errors.push("colonyArea");
-                                            if (!details.pincode) errors.push("pincode");
-                                            if (!details.googleMapsLink) errors.push("googleMapsLink");
-                                        }
-
-                                        if (errors.length > 0) {
-                                            setErrorFields(errors);
-                                            return;
-                                        }
-
-                                        setErrorFields([]);
-                                        setRegistrationStep(s => s + 1);
-                                    }}
-                                >
-                                    Continue
+                            <div className="pp-modal-footer">
+                                <button className="pp-secondary-btn" onClick={() => registrationStep === 1 ? setIsEditModalOpen(false) : setRegistrationStep(1)}>
+                                    {registrationStep === 1 ? 'Cancel' : 'Back'}
                                 </button>
-                            ) : (
-                                <button
-                                    className="pp-primary-btn"
-                                    onClick={async () => {
-                                        try {
-                                            const isApt = propertyType === 'Apartment';
-                                            const isRoom = propertyType === 'Room';
-                                            const details = isApt ? apartmentDetails : (isRoom ? roomDetails : pgDetails);
-
-                                            const standardizedData = {
-                                                type: propertyType,
-                                                name: isApt ? details.apartmentName : (isRoom ? details.roomName : details.pgName),
-                                                manager: details.managerName,
-                                                contactNumber: details.contactNumber,
-                                                email: details.email,
-                                                rent: `₹0`,
-                                                units: details.totalFlats || details.totalRooms,
-                                                location: `${details.city}, ${details.state}`,
-                                                address: {
-                                                    state: details.state,
-                                                    city: details.city,
-                                                    area: details.colonyArea,
-                                                    pincode: details.pincode,
-                                                    googleMapsLink: details.googleMapsLink
-                                                },
-                                                pincode: details.pincode,
-                                                googleMapsLink: details.googleMapsLink,
-                                                features: isApt ? {
-                                                    flatType: '1BHK',
-                                                    lift: details.liftAvailable,
-                                                    parking: details.parkingAvailable
-                                                } : (isRoom ? {
-                                                    roomType: 'Standard',
-                                                    ac: 'No'
-                                                } : {
-                                                    pgType: details.pgType,
-                                                    roomType: '1x Sharing',
-                                                    ac: 'No'
-                                                }),
-                                                status: 'Processing',
-                                                emptyUnits: details.totalFlats || details.totalRooms,
-                                                ownerId: auth.currentUser?.uid || userId || null,
-                                                authEmail: auth.currentUser?.email || null
-                                            };
-
-                                            setIsRegistering(true);
-                                            await addProperty(standardizedData);
-                                            setIsRegistering(false);
-
-                                            // Move to Success Step
-                                            setRegistrationStep(4);
-
-                                            // Auto-close and switch to Processing tab after delay
-                                            setTimeout(() => {
-                                                setIsRegisterModalOpen(false);
-                                                setActiveFilter('Processing');
-
-                                                // Reset
-                                                setApartmentDetails({
-                                                    managerName: '', apartmentName: '', contactNumber: '', email: '',
-                                                    totalFlats: '', liftAvailable: 'Yes',
-                                                    parkingAvailable: 'Yes', state: '', city: '', colonyArea: '',
-                                                    pincode: '', googleMapsLink: ''
-                                                });
-                                                setPgDetails({
-                                                    managerName: '', pgName: '', contactNumber: '', email: '',
-                                                    pgType: 'Girls PG', state: '', city: '', colonyArea: '',
-                                                    pincode: '', googleMapsLink: '', isProvidingAC: 'No', totalRooms: ''
-                                                });
-                                                setRoomDetails({
-                                                    managerName: '', roomName: '', contactNumber: '', email: '',
-                                                    totalRooms: '', state: '', city: '', colonyArea: '',
-                                                    pincode: '', googleMapsLink: ''
-                                                });
-                                            }, 2000);
-
-                                        } catch (err) {
-                                            console.error('Error:', err);
-                                            setIsRegistering(false);
-                                        }
-                                    }}
-                                    disabled={isRegistering}
-                                    style={{ display: registrationStep === 4 ? 'none' : 'block' }}
-                                >
-                                    {isRegistering ? 'Registering...' : 'Complete Registration'}
-                                </button>
-                            )}
+                                {registrationStep === 1 ? (
+                                    <button className="pp-primary-btn" onClick={() => setRegistrationStep(2)}>Continue</button>
+                                ) : (
+                                    <button className="pp-primary-btn" onClick={handleSaveEdit} disabled={isEditing}>
+                                        {isEditing ? 'Submitting...' : 'Request Changes'}
+                                    </button>
+                                )}
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
-
-
-
-            {isEditModalOpen && (
-                <div className="pp-modal-overlay">
-                    <div className="pp-modal-content" style={{ width: '600px', maxWidth: '95vw', overflow: 'hidden' }}>
-                        <div className="pp-modal-header" style={{
-                            background: 'linear-gradient(135deg, #1aa79c 0%, #148f85 100%)',
-                            color: 'white',
-                            flexDirection: 'column',
-                            alignItems: 'stretch',
-                            padding: '16px 20px'
-                        }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                                <h3 style={{ margin: 0, color: 'white' }}>Edit Property Details</h3>
-                                <button className="pp-close-btn pp-close-btn-light" onClick={() => setIsEditModalOpen(false)}>
-                                    <IoCloseOutline size={22} />
-                                </button>
-                            </div>
-
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                {[1, 2].map((step) => (
-                                    <div key={step} style={{ display: 'flex', alignItems: 'center', flex: step === 2 ? 'none' : 1 }}>
-                                        <div style={{
-                                            width: '28px',
-                                            height: '28px',
-                                            borderRadius: '50%',
-                                            background: registrationStep >= step ? 'white' : 'rgba(255,255,255,0.3)',
-                                            color: registrationStep >= step ? '#1aa79c' : 'white',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            fontSize: '14px',
-                                            fontWeight: '700'
-                                        }}>
-                                            {registrationStep > step ? <IoCheckmarkCircleOutline size={20} /> : step}
-                                        </div>
-                                        {step < 2 && (
-                                            <div style={{
-                                                height: '2px',
-                                                flex: 1,
-                                                background: registrationStep > step ? 'white' : 'rgba(255,255,255,0.3)',
-                                                margin: '0 8px'
-                                            }} />
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px', fontSize: '12px', fontWeight: '600' }}>
-                                <span style={{ opacity: registrationStep >= 1 ? 1 : 0.6 }}>Basic Info</span>
-                                <span style={{ opacity: registrationStep >= 2 ? 1 : 0.6 }}>Location</span>
-                            </div>
-                        </div>
-
-                        <div className="pp-modal-body">
-                            {registrationStep === 1 && (
-                                <div style={{ animation: 'ppFadeIn 0.4s ease' }}>
-                                    <div className="pp-modal-section-title">
-                                        <IoInformationCircleOutline size={16} />
-                                        Basic Details
-                                    </div>
-
-                                    <div className="pp-form-grid">
-                                        <div className="pp-form-group">
-                                            <label>{propertyType === 'Apartment' ? 'Manager Name' : 'PG Warden Name'} <span style={{ color: '#ef4444' }}>*</span></label>
-                                            <input
-                                                type="text"
-                                                name="managerName"
-                                                value={propertyType === 'Apartment' ? apartmentDetails.managerName : pgDetails.managerName}
-                                                onChange={handleInputChange}
-                                                className="pp-form-input"
-                                            />
-                                        </div>
-                                        <div className="pp-form-group">
-                                            <label>{propertyType === 'Apartment' ? 'Apartment Name' : 'PG Name'} <span style={{ color: '#ef4444' }}>*</span></label>
-                                            <input
-                                                type="text"
-                                                name={propertyType === 'Apartment' ? "apartmentName" : "pgName"}
-                                                value={propertyType === 'Apartment' ? apartmentDetails.apartmentName : pgDetails.pgName}
-                                                onChange={handleInputChange}
-                                                className="pp-form-input"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="pp-form-grid">
-                                        <div className="pp-form-group">
-                                            <label>Contact Number <span style={{ color: '#ef4444' }}>*</span></label>
-                                            <input
-                                                type="text"
-                                                name="contactNumber"
-                                                value={propertyType === 'Apartment' ? apartmentDetails.contactNumber : pgDetails.contactNumber}
-                                                onChange={handleInputChange}
-                                                className="pp-form-input"
-                                            />
-                                        </div>
-                                        <div className="pp-form-group">
-                                            <label>Email Address</label>
-                                            <input
-                                                type="email"
-                                                name="email"
-                                                value={propertyType === 'Apartment' ? apartmentDetails.email : pgDetails.email}
-                                                onChange={handleInputChange}
-                                                className="pp-form-input"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="pp-form-grid">
-                                        <div className="pp-form-group">
-                                            <label>{propertyType === 'Apartment' ? 'Total Flats' : 'Total Rooms'} <span style={{ color: '#ef4444' }}>*</span></label>
-                                            <input
-                                                type="number"
-                                                name={propertyType === 'Apartment' ? "totalFlats" : "totalRooms"}
-                                                value={propertyType === 'Apartment' ? apartmentDetails.totalFlats : pgDetails.totalRooms}
-                                                onChange={handleInputChange}
-                                                className="pp-form-input"
-                                            />
-                                        </div>
-                                        <div className="pp-form-group">
-                                            <label>Lift Available</label>
-                                            <select
-                                                name="liftAvailable"
-                                                value={propertyType === 'Apartment' ? apartmentDetails.liftAvailable : pgDetails.liftAvailable}
-                                                onChange={handleInputChange}
-                                                className="pp-form-select"
-                                            >
-                                                <option value="Yes">Yes</option>
-                                                <option value="No">No</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {registrationStep === 2 && (
-                                <div style={{ animation: 'ppFadeIn 0.4s ease' }}>
-                                    <div className="pp-modal-section-title">
-                                        <IoLocateOutline size={16} />
-                                        Update Location
-                                    </div>
-
-                                    <div className="pp-form-group">
-                                        <label>Google Maps Link or Search Location</label>
-                                        <div className="pp-location-search-wrapper" ref={searchResultRef}>
-                                            <input
-                                                type="text"
-                                                name="googleMapsLink"
-                                                placeholder="Paste Google Maps link or type area name..."
-                                                value={propertyType === 'Apartment' ? apartmentDetails.googleMapsLink : pgDetails.googleMapsLink}
-                                                onChange={handleInputChange}
-                                                className="pp-form-input"
-                                            />
-                                            {isSearchingLocation && <div className="pp-search-loader"></div>}
-                                            {searchResults.length > 0 && (
-                                                <div className="pp-search-results">
-                                                    {searchResults.map((item, i) => (
-                                                        <div key={i} className="pp-search-item" onClick={() => handleSelectLocation(item)}>
-                                                            <IoLocationOutline size={16} />
-                                                            <span>{item.display_name}</span>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    <div className="pp-form-grid">
-                                        <div className="pp-form-group">
-                                            <label>City</label>
-                                            <input type="text" name="city" value={propertyType === 'Apartment' ? apartmentDetails.city : pgDetails.city} onChange={handleInputChange} className="pp-form-input" />
-                                        </div>
-                                        <div className="pp-form-group">
-                                            <label>State</label>
-                                            <input type="text" name="state" value={propertyType === 'Apartment' ? apartmentDetails.state : pgDetails.state} onChange={handleInputChange} className="pp-form-input" />
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="pp-modal-footer">
-                            <button className="pp-secondary-btn" onClick={() => registrationStep === 1 ? setIsEditModalOpen(false) : setRegistrationStep(1)}>
-                                {registrationStep === 1 ? 'Cancel' : 'Back'}
-                            </button>
-                            {registrationStep === 1 ? (
-                                <button className="pp-primary-btn" onClick={() => setRegistrationStep(2)}>Continue</button>
-                            ) : (
-                                <button className="pp-primary-btn" onClick={handleSaveEdit} disabled={isEditing}>
-                                    {isEditing ? 'Submitting...' : 'Request Changes'}
-                                </button>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            )}
+                )
+            }
             {
                 isPublishModalOpen && selectedProperty && (
                     <div className="pp-modal-overlay">
-                        <div className="pp-modal-content" style={{ width: '800px', maxWidth: '95vw', maxHeight: '90vh' }}>
+                        <div className="pp-modal-content" style={{ width: '700px', maxWidth: '90vw' }}>
                             <div className="pp-modal-header">
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                     <div style={{ background: 'var(--pp-primary-light)', padding: '8px', borderRadius: '10px', color: 'var(--pp-primary)' }}>
@@ -1891,111 +1354,311 @@ export default function PropertiesPage({ userId }) {
                                                 </div>
                                             </>
                                         )}
+                                        {/* Image Upload for Room Type */}
+                                        <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '12px', border: '1px dashed #cbd5e1', gridColumn: 'span 2', marginTop: '10px' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+                                                <label style={{ fontSize: '14px', fontWeight: '600', color: '#1e293b' }}>
+                                                    <IoImageOutline size={16} style={{ verticalAlign: 'middle', marginRight: '6px' }} />
+                                                    PROPERTY IMAGES (MIN 1) <span style={{ color: '#ef4444' }}>*</span>
+                                                </label>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => imageInputRef.current?.click()}
+                                                    style={{ background: 'var(--pp-primary)', color: 'white', border: 'none', borderRadius: '6px', padding: '6px 12px', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+                                                >
+                                                    <IoAddOutline size={16} /> Upload Images
+                                                </button>
+                                                <input
+                                                    type="file"
+                                                    ref={imageInputRef}
+                                                    multiple
+                                                    accept="image/*"
+                                                    style={{ display: 'none' }}
+                                                    onChange={handleImageChange}
+                                                />
+                                            </div>
+
+                                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))', gap: '10px' }}>
+                                                {imagePreviews.map((url, idx) => (
+                                                    <div key={idx} style={{ position: 'relative', height: '80px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #e2e8f0' }}>
+                                                        <img src={url} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setSelectedImages(prev => prev.filter((_, i) => i !== idx));
+                                                                setImagePreviews(prev => prev.filter((_, i) => i !== idx));
+                                                            }}
+                                                            style={{ position: 'absolute', top: '4px', right: '4px', background: 'rgba(239, 68, 68, 0.9)', color: 'white', border: 'none', borderRadius: '4px', width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                                                        >
+                                                            <IoCloseOutline size={14} />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                                {imagePreviews.length === 0 && (
+                                                    <div style={{ gridColumn: 'span 10', padding: '20px', textAlign: 'center', color: '#94a3b8', fontSize: '13px', background: 'rgba(255,255,255,0.5)', borderRadius: '8px' }}>
+                                                        No images uploaded yet. Click "Upload Images" to add.
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
                                     </div>
                                 ) : publishDetails.propertyType === 'Apartment' ? (
-                                    <div className="pp-form-grid">
-                                        <div className="pp-form-group">
-                                            <label>FLATS TYPE <span style={{ color: '#ef4444' }}>*</span></label>
-                                            <select name="unitType" value={publishDetails.unitType} onChange={handlePublishInputChange} className={`pp-form-select ${errorFields.includes('unitType') ? 'error' : ''}`}>
-                                                <option value="1BHK">1BHK</option>
-                                                <option value="2BHK">2BHK</option>
-                                                <option value="3BHK">3BHK</option>
-                                                <option value="4BHK">4BHK</option>
-                                                <option value="Studio">Studio</option>
-                                                <option value="Custom">Custom</option>
-                                            </select>
-                                            {publishDetails.unitType === 'Custom' && (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                                        <div className="pp-form-grid" style={{ marginBottom: '12px' }}>
+                                            <div className="pp-form-group">
+                                                <label>Total Flats <span style={{ color: '#ef4444' }}>*</span></label>
                                                 <input
-                                                    type="text"
-                                                    name="customUnitType"
-                                                    value={publishDetails.customUnitType}
+                                                    type="number"
+                                                    name="totalUnits"
+                                                    value={publishDetails.totalUnits}
                                                     onChange={handlePublishInputChange}
-                                                    className={`pp-form-input ${errorFields.includes('customUnitType') ? 'error' : ''}`}
-                                                    placeholder="e.g. 4BHK / Villa"
-                                                    style={{ marginTop: '10px' }}
+                                                    className={`pp-form-input ${errorFields.includes('totalUnits') ? 'error' : ''}`}
+                                                    placeholder="Total flats in building"
                                                 />
+                                            </div>
+                                            <div className="pp-form-group">
+                                                <label>Number of Empty Flats <span style={{ color: '#ef4444' }}>*</span></label>
+                                                <input
+                                                    type="number"
+                                                    name="emptyUnits"
+                                                    value={publishDetails.emptyUnits}
+                                                    onChange={handlePublishInputChange}
+                                                    className={`pp-form-input ${errorFields.includes('emptyUnits') ? 'error' : ''}`}
+                                                    placeholder="Available flats"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div style={{ background: '#f8fafc', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                                                <label style={{ fontSize: '14px', fontWeight: '600', color: '#1e293b', margin: 0 }}>BHK ALLOCATION <span style={{ color: '#ef4444' }}>*</span></label>
+                                                <button
+                                                    type="button"
+                                                    className="pp-btn-outline"
+                                                    style={{ padding: '6px 12px', fontSize: '12px', height: 'auto' }}
+                                                    onClick={() => {
+                                                        setPublishDetails(prev => ({
+                                                            ...prev,
+                                                            bhkAllocations: [...prev.bhkAllocations, { bhkType: '1BHK', count: '', pricePerUnit: '', rentType: 'Monthly', advancePayment: '', images: [], imagePreviews: [] }]
+                                                        }));
+                                                    }}
+                                                >
+                                                    <IoAddOutline size={16} style={{ marginRight: '4px' }} /> Add BHK
+                                                </button>
+                                            </div>
+
+                                            {publishDetails.bhkAllocations.map((alloc, idx) => {
+                                                const allocatedCount = publishDetails.bhkAllocations
+                                                    .filter((_, i) => i < idx)
+                                                    .reduce((sum, a) => sum + (parseInt(a.count) || 0), 0);
+                                                const remainingUnits = Math.max(0, (parseInt(publishDetails.totalUnits) || 0) - allocatedCount);
+                                                const rowInputRef = React.createRef();
+
+                                                return (
+                                                    <div key={idx} style={{ marginBottom: '20px' }}>
+                                                        <div style={{
+                                                            background: '#ffffff',
+                                                            padding: '16px',
+                                                            borderRadius: '10px',
+                                                            marginBottom: '8px',
+                                                            display: 'grid',
+                                                            gridTemplateColumns: '1.2fr 0.8fr 1fr 1fr 1fr auto',
+                                                            gap: '12px',
+                                                            alignItems: 'flex-start'
+                                                        }}>
+                                                            <div>
+                                                                <label style={{ fontSize: '10px', color: '#64748b', textTransform: 'uppercase', fontWeight: '600', display: 'block', marginBottom: '6px' }}>BHK TYPE</label>
+                                                                <select
+                                                                    value={alloc.bhkType}
+                                                                    onChange={(e) => {
+                                                                        const newAllocs = [...publishDetails.bhkAllocations];
+                                                                        newAllocs[idx].bhkType = e.target.value;
+                                                                        setPublishDetails(prev => ({ ...prev, bhkAllocations: newAllocs }));
+                                                                    }}
+                                                                    className="pp-form-select"
+                                                                    style={{ fontSize: '13px' }}
+                                                                >
+                                                                    <option value="Studio">Studio</option>
+                                                                    <option value="1BHK">1BHK</option>
+                                                                    <option value="2BHK">2BHK</option>
+                                                                    <option value="3BHK">3BHK</option>
+                                                                    <option value="4BHK">4BHK</option>
+                                                                    <option value="5BHK+">5BHK+</option>
+                                                                </select>
+                                                            </div>
+                                                            <div>
+                                                                <label style={{ fontSize: '10px', color: '#64748b', textTransform: 'uppercase', fontWeight: '600', display: 'block', marginBottom: '6px' }}>COUNT (ROOMS)</label>
+                                                                <input
+                                                                    type="number"
+                                                                    value={alloc.count}
+                                                                    onChange={(e) => {
+                                                                        const newAllocs = [...publishDetails.bhkAllocations];
+                                                                        newAllocs[idx].count = e.target.value;
+                                                                        setPublishDetails(prev => ({ ...prev, bhkAllocations: newAllocs }));
+                                                                    }}
+                                                                    className="pp-form-input"
+                                                                    placeholder="Units"
+                                                                    style={{ fontSize: '13px' }}
+                                                                />
+                                                            </div>
+                                                            <div>
+                                                                <label style={{ fontSize: '10px', color: '#64748b', textTransform: 'uppercase', fontWeight: '600', display: 'block', marginBottom: '6px' }}>PRICE (₹)</label>
+                                                                <input
+                                                                    type="number"
+                                                                    value={alloc.pricePerUnit}
+                                                                    onChange={(e) => {
+                                                                        const newAllocs = [...publishDetails.bhkAllocations];
+                                                                        newAllocs[idx].pricePerUnit = e.target.value;
+                                                                        setPublishDetails(prev => ({ ...prev, bhkAllocations: newAllocs }));
+                                                                    }}
+                                                                    className="pp-form-input"
+                                                                    placeholder="Price"
+                                                                    style={{ fontSize: '13px' }}
+                                                                />
+                                                            </div>
+                                                            <div>
+                                                                <label style={{ fontSize: '10px', color: '#64748b', textTransform: 'uppercase', fontWeight: '600', display: 'block', marginBottom: '6px' }}>RENT TYPE</label>
+                                                                <select
+                                                                    value={alloc.rentType}
+                                                                    onChange={(e) => {
+                                                                        const newAllocs = [...publishDetails.bhkAllocations];
+                                                                        newAllocs[idx].rentType = e.target.value;
+                                                                        setPublishDetails(prev => ({ ...prev, bhkAllocations: newAllocs }));
+                                                                    }}
+                                                                    className="pp-form-select"
+                                                                    style={{ fontSize: '13px' }}
+                                                                >
+                                                                    <option value="Daily">Daily</option>
+                                                                    <option value="Weekly">Weekly</option>
+                                                                    <option value="Monthly">Monthly</option>
+                                                                    <option value="Yearly">Yearly</option>
+                                                                </select>
+                                                            </div>
+                                                            <div>
+                                                                <label style={{ fontSize: '10px', color: '#64748b', textTransform: 'uppercase', fontWeight: '600', display: 'block', marginBottom: '6px' }}>ADVANCE (₹)</label>
+                                                                <input
+                                                                    type="number"
+                                                                    value={alloc.advancePayment}
+                                                                    onChange={(e) => {
+                                                                        const newAllocs = [...publishDetails.bhkAllocations];
+                                                                        newAllocs[idx].advancePayment = e.target.value;
+                                                                        setPublishDetails(prev => ({ ...prev, bhkAllocations: newAllocs }));
+                                                                    }}
+                                                                    className="pp-form-input"
+                                                                    placeholder="Advance"
+                                                                    style={{ fontSize: '13px' }}
+                                                                />
+                                                            </div>
+                                                            <button
+                                                                type="button"
+                                                                className="pp-btn-danger"
+                                                                style={{ padding: '8px 10px', fontSize: '12px', height: 'auto', marginTop: '24px', background: '#fee2e2', color: '#dc2626', border: '1px solid #fecaca' }}
+                                                                onClick={() => {
+                                                                    setPublishDetails(prev => ({
+                                                                        ...prev,
+                                                                        bhkAllocations: prev.bhkAllocations.filter((_, i) => i !== idx)
+                                                                    }));
+                                                                }}
+                                                            >
+                                                                <IoTrashOutline size={14} />
+                                                            </button>
+                                                        </div>
+
+                                                        {/* Images for this BHK */}
+                                                        <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px dashed #cbd5e1' }}>
+                                                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                                                                <span style={{ fontSize: '11px', fontWeight: '600', color: '#64748b' }}>IMAGES FOR {alloc.bhkType}</span>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => rowInputRef.current?.click()}
+                                                                    style={{ background: 'var(--pp-primary)', color: 'white', border: 'none', borderRadius: '4px', padding: '4px 8px', fontSize: '11px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+                                                                >
+                                                                    <IoImageOutline size={12} /> Add Images
+                                                                </button>
+                                                                <input
+                                                                    type="file"
+                                                                    ref={rowInputRef}
+                                                                    multiple
+                                                                    accept="image/*"
+                                                                    style={{ display: 'none' }}
+                                                                    onChange={(e) => handleRowImageChange(e, 'bhk', idx)}
+                                                                />
+                                                            </div>
+
+                                                            <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px' }}>
+                                                                {alloc.imagePreviews?.map((url, imgIdx) => (
+                                                                    <div key={imgIdx} style={{ position: 'relative', flex: '0 0 60px', height: '60px', borderRadius: '6px', overflow: 'hidden', border: '1px solid #e2e8f0' }}>
+                                                                        <img src={url} alt="BHK" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => handleRemoveRowImage('bhk', idx, imgIdx)}
+                                                                            style={{ position: 'absolute', top: '2px', right: '2px', background: 'rgba(239, 68, 68, 0.8)', color: 'white', border: 'none', borderRadius: '2px', width: '16px', height: '16px', fontSize: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                                                                        >
+                                                                            <IoCloseOutline size={10} />
+                                                                        </button>
+                                                                    </div>
+                                                                ))}
+                                                                {(!alloc.imagePreviews || alloc.imagePreviews.length === 0) && (
+                                                                    <span style={{ fontSize: '11px', color: '#94a3b8', fontStyle: 'italic' }}>No images uploaded for this type</span>
+                                                                )}
+                                                            </div>
+                                                        </div>
+
+                                                        <div style={{
+                                                            background: '#f0fdf4',
+                                                            border: '1px solid #dcfce7',
+                                                            borderRadius: '8px',
+                                                            padding: '8px 12px',
+                                                            marginTop: '6px',
+                                                            fontSize: '11px',
+                                                            color: '#64748b',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            gap: '8px'
+                                                        }}>
+                                                            <span>Remaining Units:</span>
+                                                            <span style={{ fontWeight: '600', color: '#059669' }}>{remainingUnits}</span>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+
+                                            {publishDetails.bhkAllocations.length > 0 && (
+                                                <div style={{
+                                                    background: '#ecfdf5',
+                                                    border: '1px solid #bbf7d0',
+                                                    borderRadius: '10px',
+                                                    padding: '12px 16px',
+                                                    marginTop: '12px'
+                                                }}>
+                                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', fontSize: '13px' }}>
+                                                        <div>
+                                                            <span style={{ color: '#64748b' }}>Total Allocated:</span>
+                                                            <span style={{ fontWeight: '600', color: '#059669', marginLeft: '8px' }}>
+                                                                {publishDetails.bhkAllocations.reduce((sum, a) => sum + (parseInt(a.count) || 0), 0)} units
+                                                            </span>
+                                                        </div>
+                                                        <div>
+                                                            <span style={{ color: '#64748b' }}>Remaining:</span>
+                                                            <span style={{ fontWeight: '600', color: '#059669', marginLeft: '8px' }}>
+                                                                {Math.max(0, (parseInt(publishDetails.totalUnits) || 0) - publishDetails.bhkAllocations.reduce((sum, a) => sum + (parseInt(a.count) || 0), 0))} units
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             )}
                                         </div>
-                                        <div className="pp-form-group">
-                                            <label>Total Flats <span style={{ color: '#ef4444' }}>*</span></label>
-                                            <input
-                                                type="number"
-                                                name="totalUnits"
-                                                value={publishDetails.totalUnits}
-                                                onChange={handlePublishInputChange}
-                                                className={`pp-form-input ${errorFields.includes('totalUnits') ? 'error' : ''}`}
-                                                placeholder="Total flats in building"
-                                            />
-                                        </div>
-                                        <div className="pp-form-group">
-                                            <label>Number of Empty Flats <span style={{ color: '#ef4444' }}>*</span></label>
-                                            <input
-                                                type="number"
-                                                name="emptyUnits"
-                                                value={publishDetails.emptyUnits}
-                                                onChange={handlePublishInputChange}
-                                                className={`pp-form-input ${errorFields.includes('emptyUnits') ? 'error' : ''}`}
-                                                placeholder="Available flats"
-                                            />
-                                        </div>
-                                        <div className="pp-form-group">
-                                            <label>PAYMENT MODE <span style={{ color: '#ef4444' }}>*</span></label>
-                                            <select name="rentType" value={publishDetails.rentType} onChange={handlePublishInputChange} className="pp-form-select">
-                                                <option value="Monthly">Monthly Rent</option>
-                                                <option value="Weekly">Weekly Rent</option>
-                                                <option value="Daywise">Daywise Rent</option>
-                                            </select>
-                                        </div>
-                                        {publishDetails.rentType === 'Monthly' ? (
-                                            <>
-                                                <div className="pp-form-group">
-                                                    <label>MONTHLY RENT (₹) <span style={{ color: '#ef4444' }}>*</span></label>
-                                                    <input
-                                                        type="text"
-                                                        name="monthlyRent"
-                                                        value={publishDetails.monthlyRent}
-                                                        onChange={handlePublishInputChange}
-                                                        className={`pp-form-input ${errorFields.includes('monthlyRent') ? 'error' : ''}`}
-                                                        placeholder="e.g. 15000"
-                                                    />
-                                                </div>
-                                                <div className="pp-form-group">
-                                                    <label>Advance Payment Details <span style={{ color: '#ef4444' }}>*</span></label>
-                                                    <input
-                                                        type="text"
-                                                        name="advancePayment"
-                                                        value={publishDetails.advancePayment}
-                                                        onChange={handlePublishInputChange}
-                                                        className={`pp-form-input ${errorFields.includes('advancePayment') ? 'error' : ''}`}
-                                                        placeholder="e.g. 1 Month Rent"
-                                                    />
-                                                </div>
-                                            </>
-                                        ) : publishDetails.rentType === 'Weekly' ? (
+
+                                        <div className="pp-form-grid">
                                             <div className="pp-form-group">
-                                                <label>WEEKLY RENT (₹) <span style={{ color: '#ef4444' }}>*</span></label>
-                                                <input
-                                                    type="text"
-                                                    name="weeklyRent"
-                                                    value={publishDetails.weeklyRent}
-                                                    onChange={handlePublishInputChange}
-                                                    className={`pp-form-input ${errorFields.includes('weeklyRent') ? 'error' : ''}`}
-                                                    placeholder="e.g. 3500"
-                                                />
+                                                <label>PAYMENT MODE <span style={{ color: '#ef4444' }}>*</span></label>
+                                                <select name="rentType" value={publishDetails.rentType} onChange={handlePublishInputChange} className="pp-form-select">
+                                                    <option value="Monthly">Monthly Rent</option>
+                                                    <option value="Weekly">Weekly Rent</option>
+                                                    <option value="Daywise">Daywise Rent</option>
+                                                </select>
                                             </div>
-                                        ) : (
-                                            <div className="pp-form-group">
-                                                <label>PER DAY RENT (₹) <span style={{ color: '#ef4444' }}>*</span></label>
-                                                <input
-                                                    type="text"
-                                                    name="dailyRent"
-                                                    value={publishDetails.dailyRent}
-                                                    onChange={handlePublishInputChange}
-                                                    className={`pp-form-input ${errorFields.includes('dailyRent') ? 'error' : ''}`}
-                                                    placeholder="e.g. 500"
-                                                />
-                                            </div>
-                                        )}
+                                        </div>
                                     </div>
                                 ) : (
                                     <div className="pp-form-grid">
@@ -2017,7 +1680,7 @@ export default function PropertiesPage({ userId }) {
                                                     onClick={() => {
                                                         setPublishDetails(prev => ({
                                                             ...prev,
-                                                            roomConfigurations: [...prev.roomConfigurations, { type: '1x Sharing', customType: '', count: '', rentType: 'Monthly', rentAmount: '' }]
+                                                            roomConfigurations: [...prev.roomConfigurations, { type: '1x Sharing', customType: '', count: '', rentType: 'Monthly', rentAmount: '', advancePayment: '', images: [], imagePreviews: [] }]
                                                         }));
                                                     }}
                                                 >
@@ -2025,108 +1688,165 @@ export default function PropertiesPage({ userId }) {
                                                 </button>
                                             </div>
 
-                                            {publishDetails.roomConfigurations.map((conf, idx) => (
-                                                <div key={idx} style={{
-                                                    background: '#f8fafc',
-                                                    padding: '16px',
-                                                    borderRadius: '12px',
-                                                    marginBottom: '12px',
-                                                    border: '1px solid #e2e8f0'
-                                                }}>
-                                                    <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr 1.2fr auto', gap: '10px', alignItems: 'flex-start' }}>
-                                                        <div>
-                                                            <label style={{ fontSize: '10px', color: '#64748b', marginBottom: '4px' }}>SHARING TYPE</label>
-                                                            <select
-                                                                value={conf.type}
-                                                                onChange={(e) => {
-                                                                    const newConfs = [...publishDetails.roomConfigurations];
-                                                                    newConfs[idx].type = e.target.value;
-                                                                    setPublishDetails(prev => ({ ...prev, roomConfigurations: newConfs }));
-                                                                }}
-                                                                className="pp-form-select"
-                                                            >
-                                                                <option value="1x Sharing">1x Sharing</option>
-                                                                <option value="2x Sharing">2x Sharing</option>
-                                                                <option value="3x Sharing">3x Sharing</option>
-                                                                <option value="4x Sharing">4x Sharing</option>
-                                                                <option value="Custom">Custom</option>
-                                                            </select>
-                                                            {conf.type === 'Custom' && (
-                                                                <input
-                                                                    type="text"
-                                                                    value={conf.customType}
+                                            {publishDetails.roomConfigurations.map((conf, idx) => {
+                                                const rowInputRef = React.createRef();
+                                                return (
+                                                    <div key={idx} style={{
+                                                        background: '#ffffff',
+                                                        padding: '12px',
+                                                        borderRadius: '10px',
+                                                        marginBottom: '12px',
+                                                        border: '1px solid #e2e8f0'
+                                                    }}>
+                                                        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 0.8fr 1fr 1fr auto', gap: '10px', alignItems: 'flex-start' }}>
+                                                            <div>
+                                                                <label style={{ fontSize: '10px', color: '#64748b', marginBottom: '4px' }}>SHARING TYPE</label>
+                                                                <select
+                                                                    value={conf.type}
                                                                     onChange={(e) => {
                                                                         const newConfs = [...publishDetails.roomConfigurations];
-                                                                        newConfs[idx].customType = e.target.value;
+                                                                        newConfs[idx].type = e.target.value;
+                                                                        setPublishDetails(prev => ({ ...prev, roomConfigurations: newConfs }));
+                                                                    }}
+                                                                    className="pp-form-select"
+                                                                >
+                                                                    <option value="1x Sharing">1x Sharing</option>
+                                                                    <option value="2x Sharing">2x Sharing</option>
+                                                                    <option value="3x Sharing">3x Sharing</option>
+                                                                    <option value="4x Sharing">4x Sharing</option>
+                                                                    <option value="Custom">Custom</option>
+                                                                </select>
+                                                                {conf.type === 'Custom' && (
+                                                                    <input
+                                                                        type="text"
+                                                                        value={conf.customType}
+                                                                        onChange={(e) => {
+                                                                            const newConfs = [...publishDetails.roomConfigurations];
+                                                                            newConfs[idx].customType = e.target.value;
+                                                                            setPublishDetails(prev => ({ ...prev, roomConfigurations: newConfs }));
+                                                                        }}
+                                                                        className="pp-form-input"
+                                                                        placeholder="e.g. 5x Sharing"
+                                                                        style={{ marginTop: '5px' }}
+                                                                    />
+                                                                )}
+                                                            </div>
+                                                            <div>
+                                                                <label style={{ fontSize: '10px', color: '#64748b', marginBottom: '4px' }}>PAY TYPE</label>
+                                                                <select
+                                                                    value={conf.rentType}
+                                                                    onChange={(e) => {
+                                                                        const newConfs = [...publishDetails.roomConfigurations];
+                                                                        newConfs[idx].rentType = e.target.value;
+                                                                        setPublishDetails(prev => ({ ...prev, roomConfigurations: newConfs }));
+                                                                    }}
+                                                                    className="pp-form-select"
+                                                                >
+                                                                    <option value="Monthly">Monthly</option>
+                                                                    <option value="Weekly">Weekly</option>
+                                                                    <option value="Daily">Daily</option>
+                                                                </select>
+                                                            </div>
+                                                            <div>
+                                                                <label style={{ fontSize: '10px', color: '#64748b', marginBottom: '4px' }}>ROOMS</label>
+                                                                <input
+                                                                    type="number"
+                                                                    value={conf.count}
+                                                                    onChange={(e) => {
+                                                                        const newConfs = [...publishDetails.roomConfigurations];
+                                                                        newConfs[idx].count = e.target.value;
                                                                         setPublishDetails(prev => ({ ...prev, roomConfigurations: newConfs }));
                                                                     }}
                                                                     className="pp-form-input"
-                                                                    placeholder="e.g. 5x Sharing"
-                                                                    style={{ marginTop: '5px' }}
+                                                                    placeholder="Qty"
                                                                 />
-                                                            )}
-                                                        </div>
-                                                        <div>
-                                                            <label style={{ fontSize: '10px', color: '#64748b', marginBottom: '4px' }}>PAY TYPE</label>
-                                                            <select
-                                                                value={conf.rentType}
-                                                                onChange={(e) => {
-                                                                    const newConfs = [...publishDetails.roomConfigurations];
-                                                                    newConfs[idx].rentType = e.target.value;
-                                                                    setPublishDetails(prev => ({ ...prev, roomConfigurations: newConfs }));
-                                                                }}
-                                                                className="pp-form-select"
-                                                            >
-                                                                <option value="Monthly">Monthly</option>
-                                                                <option value="Weekly">Weekly</option>
-                                                                <option value="Daily">Daily</option>
-                                                            </select>
-                                                        </div>
-                                                        <div>
-                                                            <label style={{ fontSize: '10px', color: '#64748b', marginBottom: '4px' }}>ROOMS</label>
-                                                            <input
-                                                                type="number"
-                                                                value={conf.count}
-                                                                onChange={(e) => {
-                                                                    const newConfs = [...publishDetails.roomConfigurations];
-                                                                    newConfs[idx].count = e.target.value;
-                                                                    setPublishDetails(prev => ({ ...prev, roomConfigurations: newConfs }));
-                                                                }}
-                                                                className="pp-form-input"
-                                                                placeholder="Qty"
-                                                            />
-                                                        </div>
-                                                        <div>
-                                                            <label style={{ fontSize: '10px', color: '#64748b', marginBottom: '4px' }}>AMOUNT (₹)</label>
-                                                            <input
-                                                                type="text"
-                                                                value={conf.rentAmount}
-                                                                onChange={(e) => {
-                                                                    const newConfs = [...publishDetails.roomConfigurations];
-                                                                    newConfs[idx].rentAmount = e.target.value;
-                                                                    setPublishDetails(prev => ({ ...prev, roomConfigurations: newConfs }));
-                                                                }}
-                                                                className="pp-form-input"
-                                                                placeholder="e.g. 5000"
-                                                            />
-                                                        </div>
-                                                        <div style={{ paddingTop: '20px' }}>
-                                                            {publishDetails.roomConfigurations.length > 1 && (
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => {
-                                                                        const newConfs = publishDetails.roomConfigurations.filter((_, i) => i !== idx);
+                                                            </div>
+                                                            <div>
+                                                                <label style={{ fontSize: '10px', color: '#64748b', marginBottom: '4px' }}>AMOUNT (₹)</label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={conf.rentAmount}
+                                                                    onChange={(e) => {
+                                                                        const newConfs = [...publishDetails.roomConfigurations];
+                                                                        newConfs[idx].rentAmount = e.target.value;
                                                                         setPublishDetails(prev => ({ ...prev, roomConfigurations: newConfs }));
                                                                     }}
-                                                                    style={{ padding: '8px', background: '#fee2e2', border: 'none', borderRadius: '8px', color: '#ef4444', cursor: 'pointer' }}
+                                                                    className="pp-form-input"
+                                                                    placeholder="Rent"
+                                                                />
+                                                            </div>
+                                                            <div>
+                                                                <label style={{ fontSize: '10px', color: '#64748b', marginBottom: '4px' }}>ADVANCE (₹)</label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={conf.advancePayment}
+                                                                    onChange={(e) => {
+                                                                        const newConfs = [...publishDetails.roomConfigurations];
+                                                                        newConfs[idx].advancePayment = e.target.value;
+                                                                        setPublishDetails(prev => ({ ...prev, roomConfigurations: newConfs }));
+                                                                    }}
+                                                                    className="pp-form-input"
+                                                                    placeholder="Advance"
+                                                                />
+                                                            </div>
+                                                            <div style={{ paddingTop: '20px' }}>
+                                                                {publishDetails.roomConfigurations.length > 1 && (
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => {
+                                                                            const newConfs = publishDetails.roomConfigurations.filter((_, i) => i !== idx);
+                                                                            setPublishDetails(prev => ({ ...prev, roomConfigurations: newConfs }));
+                                                                        }}
+                                                                        style={{ padding: '8px', background: '#fee2e2', border: 'none', borderRadius: '8px', color: '#ef4444', cursor: 'pointer' }}
+                                                                    >
+                                                                        <IoTrashOutline size={18} />
+                                                                    </button>
+                                                                )}
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Images for this PG sharing type */}
+                                                        <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px dashed #cbd5e1', marginTop: '12px' }}>
+                                                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                                                                <span style={{ fontSize: '11px', fontWeight: '600', color: '#64748b' }}>IMAGES FOR {conf.type === 'Custom' ? conf.customType : conf.type}</span>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => rowInputRef.current?.click()}
+                                                                    style={{ background: 'var(--pp-primary)', color: 'white', border: 'none', borderRadius: '4px', padding: '4px 8px', fontSize: '11px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
                                                                 >
-                                                                    <IoTrashOutline size={18} />
+                                                                    <IoImageOutline size={12} /> Add Images
                                                                 </button>
-                                                            )}
+                                                                <input
+                                                                    type="file"
+                                                                    ref={rowInputRef}
+                                                                    multiple
+                                                                    accept="image/*"
+                                                                    style={{ display: 'none' }}
+                                                                    onChange={(e) => handleRowImageChange(e, 'pg', idx)}
+                                                                />
+                                                            </div>
+
+                                                            <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px' }}>
+                                                                {conf.imagePreviews?.map((url, imgIdx) => (
+                                                                    <div key={imgIdx} style={{ position: 'relative', flex: '0 0 60px', height: '60px', borderRadius: '6px', overflow: 'hidden', border: '1px solid #e2e8f0' }}>
+                                                                        <img src={url} alt="PG Sharing" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => handleRemoveRowImage('pg', idx, imgIdx)}
+                                                                            style={{ position: 'absolute', top: '2px', right: '2px', background: 'rgba(239, 68, 68, 0.8)', color: 'white', border: 'none', borderRadius: '2px', width: '16px', height: '16px', fontSize: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                                                                        >
+                                                                            <IoCloseOutline size={10} />
+                                                                        </button>
+                                                                    </div>
+                                                                ))}
+                                                                {(!conf.imagePreviews || conf.imagePreviews.length === 0) && (
+                                                                    <span style={{ fontSize: '11px', color: '#94a3b8', fontStyle: 'italic' }}>No images uploaded for this type</span>
+                                                                )}
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                            ))}
+                                                );
+                                            })}
                                             <div style={{ fontSize: '11px', color: '#64748b', marginTop: '4px', fontWeight: 'bold', textAlign: 'right' }}>
                                                 Total Configured Capacity: {publishDetails.roomConfigurations.reduce((acc, c) => acc + (Number(c.count) || 0), 0)} / {publishDetails.totalUnits || 0} Rooms
                                             </div>
@@ -2152,17 +1872,6 @@ export default function PropertiesPage({ userId }) {
                                                 onChange={handlePublishInputChange}
                                                 className={`pp-form-input ${errorFields.includes('emptyUnits') ? 'error' : ''}`}
                                                 placeholder="e.g. 5"
-                                            />
-                                        </div>
-                                        <div className="pp-form-group" style={{ gridColumn: 'span 2' }}>
-                                            <label>Common Advance Payment Details (Optional)</label>
-                                            <input
-                                                type="text"
-                                                name="advancePayment"
-                                                value={publishDetails.advancePayment}
-                                                onChange={handlePublishInputChange}
-                                                className="pp-form-input"
-                                                placeholder="e.g. 1 Month Rent"
                                             />
                                         </div>
                                     </div>
@@ -2254,62 +1963,7 @@ export default function PropertiesPage({ userId }) {
                                     </div>
                                 )}
 
-                                {/* Section 4: Images */}
-                                <div className="pp-modal-section-title">
-                                    <IoImageOutline size={16} />
-                                    Property Images
-                                </div>
 
-                                <div className="pp-form-group">
-                                    <div className="pp-image-upload-zone"
-                                        onClick={() => imageInputRef.current?.click()}
-                                        onDragOver={(e) => { e.preventDefault(); e.currentTarget.style.borderColor = 'var(--pp-primary)'; }}
-                                        onDragLeave={(e) => { e.preventDefault(); e.currentTarget.style.borderColor = '#cbd5e1'; }}
-                                        onDrop={(e) => {
-                                            e.preventDefault();
-                                            e.currentTarget.style.borderColor = '#cbd5e1';
-                                            const files = Array.from(e.dataTransfer.files);
-                                            handleImageChange({ target: { files } });
-                                        }}
-                                        style={{ textAlign: 'center', cursor: 'pointer' }}
-                                    >
-                                        <div style={{ color: 'var(--pp-primary)', marginBottom: '12px' }}>
-                                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" /></svg>
-                                        </div>
-                                        <p style={{ fontWeight: '700', color: 'var(--pp-text-main)', margin: '0', fontSize: '15px' }}>Click to upload or drag & drop</p>
-                                        <p style={{ fontSize: '13px', color: 'var(--pp-text-sec)', marginTop: '6px' }}>Upload up to 16 high-quality images (Min 1)</p>
-                                        <input
-                                            type="file"
-                                            ref={imageInputRef}
-                                            multiple
-                                            accept="image/*"
-                                            style={{ display: 'none' }}
-                                            onChange={handleImageChange}
-                                        />
-                                    </div>
-
-                                    {imagePreviews.length > 0 && (
-                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '15px', marginTop: '20px' }}>
-                                            {imagePreviews.map((url, idx) => (
-                                                <div key={idx} style={{ position: 'relative', height: '90px', borderRadius: '12px', overflow: 'hidden', border: '1px solid #e2e8f0', boxShadow: 'var(--pp-shadow-sm)' }}>
-                                                    <img src={url} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'contain', backgroundColor: '#f1f5f9' }} />
-                                                    <div style={{ position: 'absolute', top: '6px', right: '6px', display: 'flex', gap: '4px' }}>
-                                                        <button
-                                                            style={{ background: 'rgba(239, 68, 68, 0.9)', color: 'white', border: 'none', borderRadius: '50%', width: '24px', height: '24px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                setSelectedImages(prev => prev.filter((_, i) => i !== idx));
-                                                                setImagePreviews(prev => prev.filter((_, i) => i !== idx));
-                                                            }}
-                                                        >
-                                                            <IoCloseOutline size={14} />
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
 
                                 {/* Section 5: Location */}
                                 <div className="pp-modal-section-title">
@@ -2394,34 +2048,46 @@ export default function PropertiesPage({ userId }) {
                             <div className="pp-modal-footer" style={{ borderTop: '1px solid #f3f4f6', padding: '16px 24px', background: '#f9fafb' }}>
                                 <button className="pp-secondary-btn" onClick={() => setIsPublishModalOpen(false)} disabled={isPublishing}>Cancel</button>
                                 <button className="pp-primary-btn" disabled={isPublishing} onClick={async () => {
-                                    // Validation
+                                    console.log("DEBUG: Confirm & Publish button clicked.");
                                     const errors = [];
 
                                     // Common mandatory field
                                     if (!publishDetails.postDetails) errors.push('postDetails');
 
-                                    if (publishDetails.propertyType === 'Apartment') {
-                                        if (publishDetails.rentType === 'Monthly') {
-                                            if (!publishDetails.monthlyRent) errors.push('monthlyRent');
-                                            if (!publishDetails.advancePayment) errors.push('advancePayment');
-                                        } else if (publishDetails.rentType === 'Weekly') {
-                                            if (!publishDetails.weeklyRent) errors.push('weeklyRent');
+                                    const isPG = publishDetails.propertyType.toUpperCase().includes('PG') || publishDetails.propertyType.toLowerCase().includes('hostel');
+                                    const isRoom = publishDetails.propertyType === 'Room';
+                                    const isApartment = publishDetails.propertyType === 'Apartment';
+
+                                    if (isApartment) {
+                                        if (publishDetails.bhkAllocations && publishDetails.bhkAllocations.length > 0) {
+                                            const hasEmptyBHK = publishDetails.bhkAllocations.some(a => !a.count || !a.pricePerUnit || !a.advancePayment);
+                                            if (hasEmptyBHK) {
+                                                alert("Please complete all BHK allocation details (Count, Price, and Advance Payment)");
+                                                return;
+                                            }
                                         } else {
-                                            if (!publishDetails.dailyRent) errors.push('dailyRent');
+                                            if (publishDetails.rentType === 'Monthly' && !publishDetails.monthlyRent) errors.push('monthlyRent');
+                                            if (publishDetails.rentType === 'Weekly' && !publishDetails.weeklyRent) errors.push('weeklyRent');
+                                            if (!publishDetails.dailyRent && !publishDetails.monthlyRent && !publishDetails.weeklyRent) errors.push('dailyRent');
+                                            if (!publishDetails.advancePayment) errors.push('advancePayment');
                                         }
+
                                         if (!publishDetails.totalUnits) errors.push('totalUnits');
                                         if (!publishDetails.emptyUnits) errors.push('emptyUnits');
                                         if (publishDetails.unitType === 'Custom' && !publishDetails.customUnitType) errors.push('customUnitType');
-                                    } else if (publishDetails.propertyType === 'Room') {
-                                        if (publishDetails.rentType === 'Monthly') {
-                                            if (!publishDetails.monthlyRent) errors.push('monthlyRent');
-                                        } else if (publishDetails.rentType === 'Weekly') {
-                                            if (!publishDetails.weeklyRent) errors.push('weeklyRent');
-                                        } else {
-                                            if (!publishDetails.dailyRent) errors.push('dailyRent');
-                                        }
+                                    } else if (isRoom) {
+                                        if (publishDetails.rentType === 'Monthly' && !publishDetails.monthlyRent) errors.push('monthlyRent');
+                                        if (publishDetails.rentType === 'Weekly' && !publishDetails.weeklyRent) errors.push('weeklyRent');
+                                        if (!publishDetails.dailyRent && !publishDetails.monthlyRent && !publishDetails.weeklyRent) errors.push('dailyRent');
+
+                                        if (!publishDetails.advancePayment) errors.push('advancePayment');
                                         if (!publishDetails.emptyUnits) errors.push('emptyUnits');
                                         if (publishDetails.roomType === 'Custom' && !publishDetails.customRoomType) errors.push('customRoomType');
+
+                                        // Safety fallbacks for Rooms
+                                        publishDetails.monthlyRent = publishDetails.monthlyRent || '';
+                                        publishDetails.weeklyRent = publishDetails.weeklyRent || '';
+                                        publishDetails.dailyRent = publishDetails.dailyRent || '';
                                     } else {
                                         // PGs
                                         if (!publishDetails.totalUnits) errors.push('totalUnits');
@@ -2434,19 +2100,35 @@ export default function PropertiesPage({ userId }) {
                                             return;
                                         }
 
-                                        const hasEmptyConfig = publishDetails.roomConfigurations.some(c => !c.count || !c.rentAmount || (c.type === 'Custom' && !c.customType));
+                                        const hasEmptyConfig = publishDetails.roomConfigurations.some(c => !c.count || !c.rentAmount || !c.advancePayment || (c.type === 'Custom' && !c.customType));
                                         if (hasEmptyConfig) {
-                                            alert("Please complete all room configuration details (Sharing Type, Count, and Amount)");
+                                            alert("Please complete all room configuration details (Sharing Type, Count, Rent Amount, and Advance Payment)");
                                             return;
                                         }
+
+                                        // Safety fallbacks for PGs
+                                        publishDetails.monthlyRent = publishDetails.monthlyRent || '';
+                                        publishDetails.weeklyRent = publishDetails.weeklyRent || '';
+                                        publishDetails.dailyRent = publishDetails.dailyRent || '';
                                     }
 
-                                    if (selectedImages.length === 0) {
+                                    // Granular Image Validation
+                                    let totalImagesFound = 0;
+                                    if (isApartment) {
+                                        totalImagesFound = publishDetails.bhkAllocations.reduce((acc, a) => acc + (a.images?.length || 0), 0);
+                                    } else if (isPG) {
+                                        totalImagesFound = publishDetails.roomConfigurations.reduce((acc, c) => acc + (c.images?.length || 0), 0);
+                                    } else {
+                                        totalImagesFound = selectedImages.length;
+                                    }
+
+                                    if (totalImagesFound === 0) {
                                         alert("Please upload at least one image");
                                         return;
                                     }
 
                                     if (errors.length > 0) {
+                                        console.log("DEBUG: Validation failed. Missing fields:", errors);
                                         setErrorFields(errors);
                                         return;
                                     }
@@ -2454,37 +2136,91 @@ export default function PropertiesPage({ userId }) {
                                     try {
                                         setIsPublishing(true);
 
-                                        // 1. Convert Images to Base64 strings (Stored in Firestore)
-                                        const base64Images = await Promise.all(
-                                            selectedImages.map(file => convertToBase64(file))
-                                        );
+                                        // 1. Helper for individual image upload
+                                        const uploadSingleImage = async (file) => {
+                                            try {
+                                                const compressedBlob = await compressImage(file);
+                                                return await uploadImage(compressedBlob, `prop_${Date.now()}_${file.name}`, 'properties');
+                                            } catch (err) {
+                                                return await uploadImage(file, `prop_${Date.now()}_${file.name}`, 'properties');
+                                            }
+                                        };
 
-                                        // 2. Create Post with base64 strings
-                                        const isPG = publishDetails.propertyType.toUpperCase().includes('PG') || publishDetails.propertyType.toLowerCase().includes('hostel');
+                                        // 2. Upload images based on type
+                                        let finalGlobalUrls = [];
+                                        let finalBhkAllocations = [...(publishDetails.bhkAllocations || [])];
+                                        let finalRoomConfigurations = [...(publishDetails.roomConfigurations || [])];
 
-                                        const isRoom = publishDetails.propertyType === 'Room';
+                                        if (isApartment) {
+                                            for (let i = 0; i < finalBhkAllocations.length; i++) {
+                                                const alloc = finalBhkAllocations[i];
+                                                if (alloc.images && alloc.images.length > 0) {
+                                                    const urls = await Promise.all(alloc.images.map(img => uploadSingleImage(img)));
+                                                    finalBhkAllocations[i].imageUrls = urls.filter(u => u != null);
+                                                }
+                                            }
+                                        } else if (isPG) {
+                                            for (let i = 0; i < finalRoomConfigurations.length; i++) {
+                                                const config = finalRoomConfigurations[i];
+                                                if (config.images && config.images.length > 0) {
+                                                    const urls = await Promise.all(config.images.map(img => uploadSingleImage(img)));
+                                                    finalRoomConfigurations[i].imageUrls = urls.filter(u => u != null);
+                                                }
+                                            }
+                                        } else {
+                                            // Room or others (using global images)
+                                            const urls = await Promise.all(selectedImages.map(img => uploadSingleImage(img)));
+                                            finalGlobalUrls = urls.filter(u => u != null);
+                                        }
+
+                                        console.log("DEBUG: Creating post document...");
+
+                                        // 3. Clean up the data (remove File objects and previews that Firestore can't handle)
+                                        const cleanBhkAllocations = finalBhkAllocations.map(alloc => {
+                                            const { images, imagePreviews, ...rest } = alloc;
+                                            return rest;
+                                        });
+
+                                        const cleanRoomConfigurations = finalRoomConfigurations.map(config => {
+                                            const { images, imagePreviews, ...rest } = config;
+                                            return rest;
+                                        });
+
+                                        // Also remove them from the top-level spread if they exist there
+                                        // Also remove common non-serializable fields that might be lurking
+                                        const {
+                                            bhkAllocations,
+                                            roomConfigurations,
+                                            images,
+                                            imagePreviews,
+                                            selectedImages: sImg,
+                                            ...cleanPublishDetails
+                                        } = publishDetails;
 
                                         await addPost({
-                                            ...publishDetails,
-                                            imageUrls: base64Images,
+                                            ...cleanPublishDetails,
+                                            imageUrls: finalGlobalUrls,
                                             propertyId: selectedProperty.id,
                                             ownerId: userId || auth.currentUser?.uid || null,
                                             publishedAt: new Date().toISOString(),
                                             unitType: publishDetails.unitType === 'Custom' ? publishDetails.customUnitType : publishDetails.unitType,
                                             roomType: isPG ?
-                                                publishDetails.roomConfigurations.map(c => `${c.count}x ${c.type === 'Custom' ? c.customType : c.type} (${c.rentAmount}/${c.rentType === 'Monthly' ? 'mo' : (c.rentType === 'Weekly' ? 'wk' : 'day')})`).join(', ') :
+                                                cleanRoomConfigurations.map(c => `${c.count}x ${c.type === 'Custom' ? c.customType : c.type} (${c.rentAmount}/${c.rentType === 'Monthly' ? 'mo' : (c.rentType === 'Weekly' ? 'wk' : 'day')})`).join(', ') :
                                                 (isRoom ? (publishDetails.roomType === 'Custom' ? publishDetails.customRoomType : publishDetails.roomType) : null),
-                                            roomConfigurations: isPG ? publishDetails.roomConfigurations : null,
+                                            roomConfigurations: isPG ? cleanRoomConfigurations : null,
+                                            bhkAllocations: isApartment ? cleanBhkAllocations : null,
                                             // Ensure backward compatibility or clear legacy fields
-                                            monthlyRent: isPG ? (publishDetails.roomConfigurations[0]?.rentType === 'Monthly' ? publishDetails.roomConfigurations[0]?.rentAmount : '') : publishDetails.monthlyRent,
-                                            dailyRent: isPG ? (publishDetails.roomConfigurations[0]?.rentType === 'Daily' ? publishDetails.roomConfigurations[0]?.rentAmount : '') : publishDetails.dailyRent,
-                                            weeklyRent: isPG ? (publishDetails.roomConfigurations[0]?.rentType === 'Weekly' ? publishDetails.roomConfigurations[0]?.rentAmount : '') : publishDetails.weeklyRent
+                                            monthlyRent: (isPG ? (cleanRoomConfigurations[0]?.rentType === 'Monthly' ? cleanRoomConfigurations[0]?.rentAmount : '') : publishDetails.monthlyRent) || '',
+                                            dailyRent: (isPG ? (cleanRoomConfigurations[0]?.rentType === 'Daily' ? cleanRoomConfigurations[0]?.rentAmount : '') : publishDetails.dailyRent) || '',
+                                            weeklyRent: (isPG ? (cleanRoomConfigurations[0]?.rentType === 'Weekly' ? cleanRoomConfigurations[0]?.rentAmount : '') : publishDetails.weeklyRent) || ''
                                         });
 
                                         // Successfully published post
                                         setIsPublishModalOpen(false);
+                                        alert("Property post published successfully!");
                                     } catch (err) {
                                         console.error("Publishing Error:", err);
+                                        alert("Failed to publish property post. Please try again.");
                                     } finally {
                                         setIsPublishing(false);
                                     }
@@ -2494,7 +2230,8 @@ export default function PropertiesPage({ userId }) {
                             </div>
                         </div>
                     </div>
-                )}
+                )
+            }
 
             {/* View Details Modal */}
             {
@@ -2605,281 +2342,286 @@ export default function PropertiesPage({ userId }) {
                             </div>
                         </div>
                     </div>
-                )}
+                )
+            }
 
             {/* Staying People List Modal (Excel Style) */}
-            {isStayingListModalOpen && selectedPropertyForList && (
-                <div className="pp-modal-overlay">
-                    <div className="pp-modal-content" style={{ width: '1100px', maxWidth: '98vw', maxHeight: '90vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-                        <div className="pp-modal-header" style={{ padding: '20px 24px', borderBottom: '1px solid #f1f5f9' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                <div style={{ background: 'rgba(26, 167, 156, 0.1)', padding: '8px', borderRadius: '10px', color: '#1aa79c' }}>
-                                    <IoPeopleOutline size={24} />
+            {
+                isStayingListModalOpen && selectedPropertyForList && (
+                    <div className="pp-modal-overlay">
+                        <div className="pp-modal-content" style={{ width: '950px', maxWidth: '90vw', maxHeight: '90vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                            <div className="pp-modal-header pp-staying-header" style={{ padding: '20px 24px', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1 }}>
+                                    <div style={{ background: 'rgba(26, 167, 156, 0.1)', padding: '8px', borderRadius: '10px', color: '#1aa79c', flexShrink: 0 }}>
+                                        <IoPeopleOutline size={24} />
+                                    </div>
+                                    <div style={{ minWidth: 0 }}>
+                                        <h3 style={{ margin: 0, fontSize: '16px' }}>Staying People List</h3>
+                                        <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#64748b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{selectedPropertyForList.name}</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h3 style={{ margin: 0 }}>Staying People List</h3>
-                                    <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#64748b' }}>{selectedPropertyForList.name}</p>
+                                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexShrink: 0, marginLeft: '12px' }}>
+                                    <button
+                                        className="pp-secondary-btn"
+                                        style={{ padding: '8px 12px', fontSize: '13px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '6px', background: 'white', whiteSpace: 'nowrap' }}
+                                        onClick={handleDownloadList}
+                                    >
+                                        <IoDownloadOutline size={16} />
+                                        <span style={{ display: 'inline' }}>Download</span>
+                                    </button>
+                                    <button
+                                        className="pp-primary-btn"
+                                        style={{ padding: '8px 12px', fontSize: '13px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap' }}
+                                        onClick={() => handleOpenRenterForm()}
+                                    >
+                                        <IoAddOutline size={16} />
+                                        <span style={{ display: 'inline' }}>Add</span>
+                                    </button>
+                                    <button className="pp-close-btn" onClick={() => setIsStayingListModalOpen(false)} style={{ padding: '4px', minWidth: '32px', minHeight: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <IoCloseOutline size={20} />
+                                    </button>
                                 </div>
                             </div>
-                            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+
+                            <div className="pp-modal-body" style={{ padding: '24px', overflowY: 'auto' }}>
+                                <div style={{
+                                    width: '100%',
+                                    border: '1px solid #e2e8f0',
+                                    borderRadius: '12px',
+                                    overflow: 'hidden',
+                                    background: 'white',
+                                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)'
+                                }}>
+                                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '14px' }}>
+                                        <thead style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
+                                            <tr>
+                                                <th style={{ padding: '14px 16px', fontWeight: '700', color: '#475569', borderRight: '1px solid #e2e8f0' }}>Room No.</th>
+                                                <th style={{ padding: '14px 16px', fontWeight: '700', color: '#475569', borderRight: '1px solid #e2e8f0' }}>Person Name</th>
+                                                <th style={{ padding: '14px 16px', fontWeight: '700', color: '#475569', borderRight: '1px solid #e2e8f0' }}>Contact</th>
+                                                <th style={{ padding: '14px 16px', fontWeight: '700', color: '#475569', borderRight: '1px solid #e2e8f0' }}>Sharing/Type</th>
+                                                <th style={{ padding: '14px 16px', fontWeight: '700', color: '#475569', borderRight: '1px solid #e2e8f0' }}>Entry Date</th>
+                                                <th style={{ padding: '14px 16px', fontWeight: '700', color: '#475569', borderRight: '1px solid #e2e8f0' }}>Exit Date</th>
+                                                <th style={{ padding: '14px 16px', fontWeight: '700', color: '#475569', borderRight: '1px solid #e2e8f0' }}>Payment</th>
+                                                <th style={{ padding: '14px 16px', fontWeight: '700', color: '#475569', borderRight: '1px solid #e2e8f0' }}>Status</th>
+                                                <th style={{ padding: '14px 16px', fontWeight: '700', color: '#475569', textAlign: 'center' }}>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {allRenters.filter(r => r.property === selectedPropertyForList.name).length > 0 ? (
+                                                allRenters.filter(r => r.property === selectedPropertyForList.name).map((renter, idx) => {
+                                                    const balance = (Number(renter.rentAmount) || 0) - (Number(renter.paidAmount) || 0);
+                                                    const isPaid = balance <= 0 && (Number(renter.rentAmount) > 0);
+
+                                                    return (
+                                                        <tr key={renter.id} style={{ borderBottom: '1px solid #f1f5f9', background: idx % 2 === 0 ? 'white' : '#fcfdfe' }}>
+                                                            <td style={{ padding: '12px 16px', fontWeight: '600', color: '#334155', borderRight: '1px solid #f1f5f9' }}>{renter.unit || '-'}</td>
+                                                            <td style={{ padding: '12px 16px', color: '#334155', borderRight: '1px solid #f1f5f9' }}>
+                                                                <div style={{ fontWeight: '600' }}>{renter.name}</div>
+                                                                <div style={{ fontSize: '11px', color: '#94a3b8' }}>{renter.email}</div>
+                                                            </td>
+                                                            <td style={{ padding: '12px 16px', color: '#475569', borderRight: '1px solid #f1f5f9' }}>{renter.phone || '-'}</td>
+                                                            <td style={{ padding: '12px 16px', borderRight: '1px solid #f1f5f9' }}>
+                                                                <span style={{ fontSize: '12px', fontWeight: '600', color: '#1aa79c' }}>{renter.sharingType || (selectedPropertyForList.type === 'Apartment' ? '1BHK' : 'Standard')}</span>
+                                                            </td>
+                                                            <td style={{ padding: '12px 16px', color: '#475569', borderRight: '1px solid #f1f5f9' }}>{renter.entryDate ? new Date(renter.entryDate).toLocaleDateString() : '-'}</td>
+                                                            <td style={{ padding: '12px 16px', color: '#475569', borderRight: '1px solid #f1f5f9' }}>{renter.exitDate ? new Date(renter.exitDate).toLocaleDateString() : '-'}</td>
+                                                            <td style={{ padding: '12px 16px', borderRight: '1px solid #f1f5f9' }}>
+                                                                <div style={{ fontSize: '13px', fontWeight: '700' }}>₹{renter.paidAmount || 0} / ₹{renter.rentAmount || 0}</div>
+                                                            </td>
+                                                            <td style={{ padding: '12px 16px', borderRight: '1px solid #f1f5f9' }}>
+                                                                <span style={{
+                                                                    background: isPaid ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                                                                    color: isPaid ? '#10b981' : '#ef4444',
+                                                                    padding: '4px 10px',
+                                                                    borderRadius: '6px',
+                                                                    fontSize: '11px',
+                                                                    fontWeight: '700',
+                                                                    textTransform: 'uppercase'
+                                                                }}>
+                                                                    {isPaid ? 'PAID' : 'PENDING'}
+                                                                </span>
+                                                            </td>
+                                                            <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+                                                                <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+                                                                    <button onClick={() => handleOpenRenterForm(renter)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer' }}><IoCreateOutline size={18} /></button>
+                                                                    <button onClick={() => handleDeleteRenter(renter.id)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }}><IoTrashOutline size={18} /></button>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                })
+                                            ) : (
+                                                <tr>
+                                                    <td colSpan="9" style={{ padding: '48px', textAlign: 'center', color: '#94a3b8' }}>
+                                                        <div style={{ marginBottom: '8px' }}><IoPeopleOutline size={32} opacity={0.3} /></div>
+                                                        No staying people records found for this property.
+                                                    </td>
+                                                </tr>
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div className="pp-modal-footer" style={{ borderTop: '1px solid #f1f5f9', background: '#f8fafc', padding: '16px 24px', display: 'flex', justifyContent: 'flex-end' }}>
                                 <button
                                     className="pp-secondary-btn"
-                                    style={{ padding: '8px 16px', fontSize: '14px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px', background: 'white' }}
-                                    onClick={handleDownloadList}
+                                    onClick={() => setIsStayingListModalOpen(false)}
+                                    style={{ background: 'white' }}
                                 >
-                                    <IoDownloadOutline size={18} />
-                                    Download List
+                                    Close List
                                 </button>
-                                <button
-                                    className="pp-primary-btn"
-                                    style={{ padding: '8px 16px', fontSize: '14px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}
-                                    onClick={() => handleOpenRenterForm()}
-                                >
-                                    <IoAddOutline size={18} />
-                                    Add on the List
-                                </button>
-                                <button className="pp-close-btn" onClick={() => setIsStayingListModalOpen(false)}>
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
+
+            {/* Add/Edit Renter Form Modal */}
+            {
+                isRenterFormOpen && (
+                    <div className="pp-modal-overlay" style={{ zIndex: 3000 }}>
+                        <div className="pp-modal-content" style={{ width: '600px', maxHeight: '90vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                            <div className="pp-modal-header" style={{ padding: '20px 24px', borderBottom: '1px solid #f1f5f9' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                    <div style={{ background: 'rgba(26, 167, 156, 0.1)', padding: '8px', borderRadius: '10px', color: '#1aa79c' }}>
+                                        {editingRenter ? <IoCreateOutline size={24} /> : <IoAddOutline size={24} />}
+                                    </div>
+                                    <div>
+                                        <h3 style={{ margin: 0 }}>{editingRenter ? 'Edit Resident' : 'Add New Resident'}</h3>
+                                        <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#64748b' }}>For {selectedPropertyForList?.name}</p>
+                                    </div>
+                                </div>
+                                <button className="pp-close-btn" onClick={() => setIsRenterFormOpen(false)}>
                                     <IoCloseOutline size={24} />
                                 </button>
                             </div>
-                        </div>
 
-                        <div className="pp-modal-body" style={{ padding: '24px', overflowY: 'auto' }}>
-                            <div style={{
-                                width: '100%',
-                                border: '1px solid #e2e8f0',
-                                borderRadius: '12px',
-                                overflow: 'hidden',
-                                background: 'white',
-                                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)'
-                            }}>
-                                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '14px' }}>
-                                    <thead style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
-                                        <tr>
-                                            <th style={{ padding: '14px 16px', fontWeight: '700', color: '#475569', borderRight: '1px solid #e2e8f0' }}>Room No.</th>
-                                            <th style={{ padding: '14px 16px', fontWeight: '700', color: '#475569', borderRight: '1px solid #e2e8f0' }}>Person Name</th>
-                                            <th style={{ padding: '14px 16px', fontWeight: '700', color: '#475569', borderRight: '1px solid #e2e8f0' }}>Contact</th>
-                                            <th style={{ padding: '14px 16px', fontWeight: '700', color: '#475569', borderRight: '1px solid #e2e8f0' }}>Sharing/Type</th>
-                                            <th style={{ padding: '14px 16px', fontWeight: '700', color: '#475569', borderRight: '1px solid #e2e8f0' }}>Entry Date</th>
-                                            <th style={{ padding: '14px 16px', fontWeight: '700', color: '#475569', borderRight: '1px solid #e2e8f0' }}>Exit Date</th>
-                                            <th style={{ padding: '14px 16px', fontWeight: '700', color: '#475569', borderRight: '1px solid #e2e8f0' }}>Payment</th>
-                                            <th style={{ padding: '14px 16px', fontWeight: '700', color: '#475569', borderRight: '1px solid #e2e8f0' }}>Status</th>
-                                            <th style={{ padding: '14px 16px', fontWeight: '700', color: '#475569', textAlign: 'center' }}>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {allRenters.filter(r => r.property === selectedPropertyForList.name).length > 0 ? (
-                                            allRenters.filter(r => r.property === selectedPropertyForList.name).map((renter, idx) => {
-                                                const balance = (Number(renter.rentAmount) || 0) - (Number(renter.paidAmount) || 0);
-                                                const isPaid = balance <= 0 && (Number(renter.rentAmount) > 0);
-
-                                                return (
-                                                    <tr key={renter.id} style={{ borderBottom: '1px solid #f1f5f9', background: idx % 2 === 0 ? 'white' : '#fcfdfe' }}>
-                                                        <td style={{ padding: '12px 16px', fontWeight: '600', color: '#334155', borderRight: '1px solid #f1f5f9' }}>{renter.unit || '-'}</td>
-                                                        <td style={{ padding: '12px 16px', color: '#334155', borderRight: '1px solid #f1f5f9' }}>
-                                                            <div style={{ fontWeight: '600' }}>{renter.name}</div>
-                                                            <div style={{ fontSize: '11px', color: '#94a3b8' }}>{renter.email}</div>
-                                                        </td>
-                                                        <td style={{ padding: '12px 16px', color: '#475569', borderRight: '1px solid #f1f5f9' }}>{renter.phone || '-'}</td>
-                                                        <td style={{ padding: '12px 16px', borderRight: '1px solid #f1f5f9' }}>
-                                                            <span style={{ fontSize: '12px', fontWeight: '600', color: '#1aa79c' }}>{renter.sharingType || (selectedPropertyForList.type === 'Apartment' ? '1BHK' : 'Standard')}</span>
-                                                        </td>
-                                                        <td style={{ padding: '12px 16px', color: '#475569', borderRight: '1px solid #f1f5f9' }}>{renter.entryDate ? new Date(renter.entryDate).toLocaleDateString() : '-'}</td>
-                                                        <td style={{ padding: '12px 16px', color: '#475569', borderRight: '1px solid #f1f5f9' }}>{renter.exitDate ? new Date(renter.exitDate).toLocaleDateString() : '-'}</td>
-                                                        <td style={{ padding: '12px 16px', borderRight: '1px solid #f1f5f9' }}>
-                                                            <div style={{ fontSize: '13px', fontWeight: '700' }}>₹{renter.paidAmount || 0} / ₹{renter.rentAmount || 0}</div>
-                                                        </td>
-                                                        <td style={{ padding: '12px 16px', borderRight: '1px solid #f1f5f9' }}>
-                                                            <span style={{
-                                                                background: isPaid ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-                                                                color: isPaid ? '#10b981' : '#ef4444',
-                                                                padding: '4px 10px',
-                                                                borderRadius: '6px',
-                                                                fontSize: '11px',
-                                                                fontWeight: '700',
-                                                                textTransform: 'uppercase'
-                                                            }}>
-                                                                {isPaid ? 'PAID' : 'PENDING'}
-                                                            </span>
-                                                        </td>
-                                                        <td style={{ padding: '12px 16px', textAlign: 'center' }}>
-                                                            <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
-                                                                <button onClick={() => handleOpenRenterForm(renter)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer' }}><IoCreateOutline size={18} /></button>
-                                                                <button onClick={() => handleDeleteRenter(renter.id)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }}><IoTrashOutline size={18} /></button>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                );
-                                            })
-                                        ) : (
-                                            <tr>
-                                                <td colSpan="9" style={{ padding: '48px', textAlign: 'center', color: '#94a3b8' }}>
-                                                    <div style={{ marginBottom: '8px' }}><IoPeopleOutline size={32} opacity={0.3} /></div>
-                                                    No staying people records found for this property.
-                                                </td>
-                                            </tr>
-                                        )}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                        <div className="pp-modal-footer" style={{ borderTop: '1px solid #f1f5f9', background: '#f8fafc', padding: '16px 24px', display: 'flex', justifyContent: 'flex-end' }}>
-                            <button
-                                className="pp-secondary-btn"
-                                onClick={() => setIsStayingListModalOpen(false)}
-                                style={{ background: 'white' }}
-                            >
-                                Close List
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Add/Edit Renter Form Modal */}
-            {isRenterFormOpen && (
-                <div className="pp-modal-overlay" style={{ zIndex: 3000 }}>
-                    <div className="pp-modal-content" style={{ width: '600px', maxHeight: '90vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-                        <div className="pp-modal-header" style={{ padding: '20px 24px', borderBottom: '1px solid #f1f5f9' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                <div style={{ background: 'rgba(26, 167, 156, 0.1)', padding: '8px', borderRadius: '10px', color: '#1aa79c' }}>
-                                    {editingRenter ? <IoCreateOutline size={24} /> : <IoAddOutline size={24} />}
-                                </div>
-                                <div>
-                                    <h3 style={{ margin: 0 }}>{editingRenter ? 'Edit Resident' : 'Add New Resident'}</h3>
-                                    <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#64748b' }}>For {selectedPropertyForList?.name}</p>
-                                </div>
-                            </div>
-                            <button className="pp-close-btn" onClick={() => setIsRenterFormOpen(false)}>
-                                <IoCloseOutline size={24} />
-                            </button>
-                        </div>
-
-                        <div className="pp-modal-body" style={{ padding: '24px', overflowY: 'auto' }}>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                    <label style={{ fontSize: '12px', fontWeight: '700', color: '#475569' }}>FULL NAME *</label>
-                                    <input
-                                        className="pp-form-input"
-                                        type="text"
-                                        value={renterForm.name}
-                                        onChange={(e) => setRenterForm({ ...renterForm, name: e.target.value })}
-                                        placeholder="John Doe"
-                                    />
-                                </div>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                    <label style={{ fontSize: '12px', fontWeight: '700', color: '#475569' }}>PHONE NUMBER</label>
-                                    <input
-                                        className="pp-form-input"
-                                        type="tel"
-                                        value={renterForm.phone}
-                                        onChange={(e) => setRenterForm({ ...renterForm, phone: e.target.value })}
-                                        placeholder="+91 98765 43210"
-                                    />
-                                </div>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                    <label style={{ fontSize: '12px', fontWeight: '700', color: '#475569' }}>EMAIL ADDRESS</label>
-                                    <input
-                                        className="pp-form-input"
-                                        type="email"
-                                        value={renterForm.email}
-                                        onChange={(e) => setRenterForm({ ...renterForm, email: e.target.value })}
-                                        placeholder="john@example.com"
-                                    />
-                                </div>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                    <label style={{ fontSize: '12px', fontWeight: '700', color: '#475569' }}>ROOM / UNIT NO.</label>
-                                    <input
-                                        className="pp-form-input"
-                                        type="text"
-                                        value={renterForm.unit}
-                                        onChange={(e) => setRenterForm({ ...renterForm, unit: e.target.value })}
-                                        placeholder="101"
-                                    />
-                                </div>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                    <label style={{ fontSize: '12px', fontWeight: '700', color: '#475569' }}>SHARING / ROOM TYPE</label>
-                                    <input
-                                        className="pp-form-input"
-                                        type="text"
-                                        value={renterForm.sharingType}
-                                        onChange={(e) => setRenterForm({ ...renterForm, sharingType: e.target.value })}
-                                        placeholder={selectedPropertyForList?.type === 'PG' ? '2x Sharing' : 'Deluxe Room'}
-                                    />
-                                </div>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                    <label style={{ fontSize: '12px', fontWeight: '700', color: '#475569' }}>MONTHLY RENT (₹) *</label>
-                                    <div style={{ position: 'relative' }}>
-                                        <div style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#64748b' }}>₹</div>
+                            <div className="pp-modal-body" style={{ padding: '24px', overflowY: 'auto' }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                        <label style={{ fontSize: '12px', fontWeight: '700', color: '#475569' }}>FULL NAME *</label>
                                         <input
                                             className="pp-form-input"
-                                            type="number"
-                                            style={{ paddingLeft: '28px' }}
-                                            value={renterForm.rentAmount}
-                                            onChange={(e) => setRenterForm({ ...renterForm, rentAmount: e.target.value })}
-                                            placeholder="5000"
+                                            type="text"
+                                            value={renterForm.name}
+                                            onChange={(e) => setRenterForm({ ...renterForm, name: e.target.value })}
+                                            placeholder="John Doe"
                                         />
                                     </div>
-                                </div>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                    <label style={{ fontSize: '12px', fontWeight: '700', color: '#475569' }}>AMOUNT PAID (₹)</label>
-                                    <div style={{ position: 'relative' }}>
-                                        <div style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#64748b' }}>₹</div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                        <label style={{ fontSize: '12px', fontWeight: '700', color: '#475569' }}>PHONE NUMBER</label>
                                         <input
                                             className="pp-form-input"
-                                            type="number"
-                                            style={{ paddingLeft: '28px' }}
-                                            value={renterForm.paidAmount}
-                                            onChange={(e) => setRenterForm({ ...renterForm, paidAmount: e.target.value })}
-                                            placeholder="2000"
+                                            type="tel"
+                                            value={renterForm.phone}
+                                            onChange={(e) => setRenterForm({ ...renterForm, phone: e.target.value })}
+                                            placeholder="+91 98765 43210"
                                         />
                                     </div>
-                                </div>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                    <label style={{ fontSize: '12px', fontWeight: '700', color: '#475569' }}>ENTRY DATE</label>
-                                    <input
-                                        className="pp-form-input"
-                                        type="date"
-                                        value={renterForm.entryDate}
-                                        onChange={(e) => setRenterForm({ ...renterForm, entryDate: e.target.value })}
-                                    />
-                                </div>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                    <label style={{ fontSize: '12px', fontWeight: '700', color: '#475569' }}>EXIT DATE (OPTIONAL)</label>
-                                    <input
-                                        className="pp-form-input"
-                                        type="date"
-                                        value={renterForm.exitDate}
-                                        onChange={(e) => setRenterForm({ ...renterForm, exitDate: e.target.value })}
-                                    />
-                                </div>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                    <label style={{ fontSize: '12px', fontWeight: '700', color: '#475569' }}>PAYMENT METHOD</label>
-                                    <select
-                                        className="pp-form-input"
-                                        value={renterForm.paymentType}
-                                        onChange={(e) => setRenterForm({ ...renterForm, paymentType: e.target.value })}
-                                    >
-                                        <option value="Cash">Cash</option>
-                                        <option value="Online">Online / UPI</option>
-                                        <option value="Bank Transfer">Bank Transfer</option>
-                                    </select>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                        <label style={{ fontSize: '12px', fontWeight: '700', color: '#475569' }}>EMAIL ADDRESS</label>
+                                        <input
+                                            className="pp-form-input"
+                                            type="email"
+                                            value={renterForm.email}
+                                            onChange={(e) => setRenterForm({ ...renterForm, email: e.target.value })}
+                                            placeholder="john@example.com"
+                                        />
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                        <label style={{ fontSize: '12px', fontWeight: '700', color: '#475569' }}>ROOM / UNIT NO.</label>
+                                        <input
+                                            className="pp-form-input"
+                                            type="text"
+                                            value={renterForm.unit}
+                                            onChange={(e) => setRenterForm({ ...renterForm, unit: e.target.value })}
+                                            placeholder="101"
+                                        />
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                        <label style={{ fontSize: '12px', fontWeight: '700', color: '#475569' }}>SHARING / ROOM TYPE</label>
+                                        <input
+                                            className="pp-form-input"
+                                            type="text"
+                                            value={renterForm.sharingType}
+                                            onChange={(e) => setRenterForm({ ...renterForm, sharingType: e.target.value })}
+                                            placeholder={selectedPropertyForList?.type === 'PG' ? '2x Sharing' : 'Deluxe Room'}
+                                        />
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                        <label style={{ fontSize: '12px', fontWeight: '700', color: '#475569' }}>MONTHLY RENT (₹) *</label>
+                                        <div style={{ position: 'relative' }}>
+                                            <div style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#64748b' }}>₹</div>
+                                            <input
+                                                className="pp-form-input"
+                                                type="number"
+                                                style={{ paddingLeft: '28px' }}
+                                                value={renterForm.rentAmount}
+                                                onChange={(e) => setRenterForm({ ...renterForm, rentAmount: e.target.value })}
+                                                placeholder="5000"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                        <label style={{ fontSize: '12px', fontWeight: '700', color: '#475569' }}>AMOUNT PAID (₹)</label>
+                                        <div style={{ position: 'relative' }}>
+                                            <div style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#64748b' }}>₹</div>
+                                            <input
+                                                className="pp-form-input"
+                                                type="number"
+                                                style={{ paddingLeft: '28px' }}
+                                                value={renterForm.paidAmount}
+                                                onChange={(e) => setRenterForm({ ...renterForm, paidAmount: e.target.value })}
+                                                placeholder="2000"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                        <label style={{ fontSize: '12px', fontWeight: '700', color: '#475569' }}>ENTRY DATE</label>
+                                        <input
+                                            className="pp-form-input"
+                                            type="date"
+                                            value={renterForm.entryDate}
+                                            onChange={(e) => setRenterForm({ ...renterForm, entryDate: e.target.value })}
+                                        />
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                        <label style={{ fontSize: '12px', fontWeight: '700', color: '#475569' }}>EXIT DATE (OPTIONAL)</label>
+                                        <input
+                                            className="pp-form-input"
+                                            type="date"
+                                            value={renterForm.exitDate}
+                                            onChange={(e) => setRenterForm({ ...renterForm, exitDate: e.target.value })}
+                                        />
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                        <label style={{ fontSize: '12px', fontWeight: '700', color: '#475569' }}>PAYMENT METHOD</label>
+                                        <select
+                                            className="pp-form-input"
+                                            value={renterForm.paymentType}
+                                            onChange={(e) => setRenterForm({ ...renterForm, paymentType: e.target.value })}
+                                        >
+                                            <option value="Cash">Cash</option>
+                                            <option value="Online">Online / UPI</option>
+                                            <option value="Bank Transfer">Bank Transfer</option>
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <div className="pp-modal-footer" style={{ padding: '16px 24px', borderTop: '1px solid #f1f5f9', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
-                            <button className="pp-secondary-btn" onClick={() => setIsRenterFormOpen(false)}>Cancel</button>
-                            <button className="pp-primary-btn" onClick={handleSaveRenter}>
-                                {editingRenter ? 'Update Details' : 'Save Resident'}
-                            </button>
+                            <div className="pp-modal-footer" style={{ padding: '16px 24px', borderTop: '1px solid #f1f5f9', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+                                <button className="pp-secondary-btn" onClick={() => setIsRenterFormOpen(false)}>Cancel</button>
+                                <button className="pp-primary-btn" onClick={handleSaveRenter}>
+                                    {editingRenter ? 'Update Details' : 'Save Resident'}
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
-        </div>
+        </div >
     );
 }
 

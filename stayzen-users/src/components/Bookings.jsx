@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { auth } from '../firebase';
 import { subscribeToUserBookings, deleteBooking, addPaymentRecord, getPaymentByBookingId } from '../services/dataService';
 import {
@@ -77,7 +78,7 @@ const Bookings = () => {
         }
 
         const options = {
-            key: "rzp_live_SEgBKenzs40ifv",
+            key: "rzp_test_S5fEDvgiK3b2fh", // TEST MODE key
             amount: amount * 100,
             currency: "INR",
             name: "StayZen",
@@ -134,16 +135,7 @@ const Bookings = () => {
     };
 
     return (
-        <div className="intel-dashboard">
-            {/* Cinematic Header - My Stays */}
-            {/* Simple Header */}
-            <div className="intel-simple-header">
-                <div className="simple-header-content">
-                    <h1>My Stays</h1>
-                    <p>Track active protocols, payments, and reservation history.</p>
-                </div>
-            </div>
-
+        <div className="intel-dashboard bookings-view">
             <div className="intel-content-wrapper">
 
                 <div className="intel-tabs-container">
@@ -154,8 +146,8 @@ const Bookings = () => {
                                 className={`intel-tab-btn ${activeTab === tab ? 'active' : ''}`}
                                 onClick={() => setActiveTab(tab)}
                             >
-                                {tab === 'Pending' ? <Clock size={16} /> : <CalendarCheck size={16} />}
-                                <span>{tab} Phase</span>
+                                {tab === 'Pending' ? <Clock size={18} /> : <CalendarCheck size={18} />}
+                                <span>{tab === 'Pending' ? 'Active Requests' : 'Confirmed Stays'}</span>
                             </button>
                         ))}
                     </div>
@@ -256,12 +248,11 @@ const Bookings = () => {
                                 <div className="empty-icon-circle">
                                     <Search size={48} />
                                 </div>
-                                <h3>No {activeTab.toLowerCase()} protocols active</h3>
-                                <p>Ready to initialize a new resident sequence? Explore verified sectors now.</p>
-                                <button className="intel-btn-primary" onClick={() => window.location.href = '/explore'}>
-                                    Explore Verified Stays
-                                    <ArrowRight size={18} />
-                                </button>
+                                <h3>No {activeTab.toLowerCase()} bookings found</h3>
+                                <p>Ready to start your journey? Explore verified properties now.</p>
+                                <Link to="/explore" className="intel-empty-btn">
+                                    Explore Verified Stays <ArrowRight size={18} />
+                                </Link>
                             </motion.div>
                         )}
                     </AnimatePresence>

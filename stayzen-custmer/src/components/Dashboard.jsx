@@ -7,15 +7,15 @@ import PropertiesPage from './PropertiesPage';
 import RentersPage from './RentersPage';
 import BookingsPage from './BookingsPage';
 import PaymentsPage from './PaymentsPage';
+import BankDetailsPage from './BankDetailsPage';
 import { checkAndGenerateMonthlyRents } from '../services/dataService';
 
-import SettingsPage from './SettingsPage';
 import './layout.css';
 
-import { IoHomeOutline, IoCalendarOutline, IoBusinessOutline, IoPeopleOutline, IoWalletOutline, IoSettingsOutline } from 'react-icons/io5';
+import { IoHomeOutline, IoBusinessOutline, IoPeopleOutline, IoWalletOutline, IoCardOutline } from 'react-icons/io5';
 
-export default function Dashboard({ onLogout, user }) {
-    const [activeTab, setActiveTab] = useState('dashboard');
+export default function Dashboard({ onLogout, user, initialTab }) {
+    const [activeTab, setActiveTab] = useState(initialTab || 'dashboard');
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     useEffect(() => {
@@ -28,6 +28,8 @@ export default function Dashboard({ onLogout, user }) {
     const closeSidebar = () => setIsSidebarOpen(false);
 
     const getTitle = () => {
+        if (!activeTab || typeof activeTab !== 'string') return 'Dashboard';
+        if (activeTab === 'bank') return 'Bank Details';
         return activeTab.charAt(0).toUpperCase() + activeTab.slice(1);
     };
 
@@ -46,8 +48,8 @@ export default function Dashboard({ onLogout, user }) {
                 return <BookingsPage {...commonProps} setActiveTab={setActiveTab} />;
             case 'payments':
                 return <PaymentsPage {...commonProps} />;
-            case 'settings':
-                return <SettingsPage {...commonProps} />;
+            case 'bank':
+                return <BankDetailsPage {...commonProps} />;
             default:
                 return <div>Select a tab</div>;
         }
@@ -103,18 +105,18 @@ export default function Dashboard({ onLogout, user }) {
                     <span>Renters</span>
                 </button>
                 <button
+                    className={`nav-item ${activeTab === 'bank' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('bank')}
+                >
+                    <IoCardOutline size={22} />
+                    <span>Bank</span>
+                </button>
+                <button
                     className={`nav-item ${activeTab === 'payments' ? 'active' : ''}`}
                     onClick={() => setActiveTab('payments')}
                 >
                     <IoWalletOutline size={22} />
                     <span>Payments</span>
-                </button>
-                <button
-                    className={`nav-item ${activeTab === 'settings' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('settings')}
-                >
-                    <IoSettingsOutline size={22} />
-                    <span>More</span>
                 </button>
             </nav>
         </div>

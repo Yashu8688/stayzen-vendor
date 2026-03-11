@@ -22,6 +22,7 @@ const Sidebar = () => {
         { title: 'Promotions', path: '/promotions', icon: <Tag size={20} /> },
         { title: 'Feedback', path: '/feedback', icon: <MessageSquare size={20} /> },
         { title: 'Help Center', path: '/help-center', icon: <LifeBuoy size={20} /> },
+        { title: 'Roommate Matching', path: '/roommate-matching', icon: <Users size={20} /> },
         { title: 'Users', path: '/users', icon: <Users size={20} /> },
         { title: 'Alerts', path: '/alerts', icon: <Bell size={20} /> },
         { title: 'Settings', path: '/settings', icon: <Settings size={20} /> },

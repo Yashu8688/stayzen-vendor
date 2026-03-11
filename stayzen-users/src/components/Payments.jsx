@@ -44,19 +44,23 @@ const Payments = () => {
             setRenterDetails(data);
         });
 
+        return () => {
+            unsubscribePayments();
+            unsubscribeBookings();
+            unsubscribeRenter();
+        };
+    }, [auth.currentUser?.uid]); // Only sync when the user profile changes
+
+    useEffect(() => {
         const handleClickOutside = (event) => {
             if (isDropdownOpen && !event.target.closest('.property-select-wrap')) {
                 setIsDropdownOpen(false);
             }
         };
-        document.addEventListener('mousedown', handleClickOutside);
-
-        return () => {
-            unsubscribePayments();
-            unsubscribeBookings();
-            unsubscribeRenter();
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
+        if (isDropdownOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+        return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [isDropdownOpen]);
 
     const parseAmount = (val) => {
@@ -113,8 +117,13 @@ const Payments = () => {
 
     const loadRazorpay = () => {
         return new Promise((resolve) => {
+            if (window.Razorpay) {
+                resolve(true);
+                return;
+            }
             const script = document.createElement('script');
             script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+            script.id = 'razorpay-sdk';
             script.onload = () => resolve(true);
             script.onerror = () => resolve(false);
             document.body.appendChild(script);
@@ -140,7 +149,7 @@ const Payments = () => {
 
         try {
             const options = {
-                key: "rzp_live_SEgBKenzs40ifv", // Harmonizing with Bookings.jsx
+                key: "rzp_test_S5fEDvgiK3b2fh", // TEST MODE key
                 amount: Math.round(amount * 100),
                 currency: "INR",
                 name: "StayZen",

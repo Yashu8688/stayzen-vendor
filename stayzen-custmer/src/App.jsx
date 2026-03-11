@@ -4,8 +4,9 @@ import Dashboard from './components/Dashboard'
 import LandingPage from './components/LandingPage'
 import { AnimatePresence, motion } from 'framer-motion'
 import './App.css'
-import { auth } from './firebase'
+import { auth, db } from './firebase'
 import { signOut, onAuthStateChanged } from 'firebase/auth'
+import { doc, getDoc, setDoc, increment } from "firebase/firestore";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -13,28 +14,67 @@ function App() {
   const [error, setError] = useState(null);
   const [hasProfile, setHasProfile] = useState(false);
   const [showLanding, setShowLanding] = useState(true);
+  const [initialTab, setInitialTab] = useState('dashboard');
 
   useEffect(() => {
+    // 📊 DAILY VISIT TRACKING (Vendors Site)
+    const trackVisit = async () => {
+      const hasTracked = sessionStorage.getItem('v_tracked');
+      if (hasTracked) return;
+
+      try {
+        const today = new Date().toISOString().split('T')[0];
+        const shardId = Math.floor(Math.random() * 10).toString(); // 10 shards
+        const shardRef = doc(db, "analytics", "visits", "daily", today, "shards", shardId);
+
+        await setDoc(shardRef, {
+          vendors: increment(1),
+          lastUpdated: new Date().toISOString()
+        }, { merge: true });
+
+        sessionStorage.setItem('v_tracked', 'true');
+        console.log("Visit tracked for Vendor site (sharded)");
+      } catch (err) {
+        console.error("Tracking Error:", err);
+      }
+    };
+
+    trackVisit();
+
     const unsubscribe = onAuthStateChanged(auth, async (u) => {
       setLoading(true);
       setError(null);
       if (u) {
         try {
-          const { doc, getDoc } = await import("firebase/firestore");
-          const { db } = await import("./firebase");
-          const userDoc = await getDoc(doc(db, "users", u.uid));
+          // 🚀 Ensure user has a manager profile and is approved automatically
+          const { getOrCreateManagerProfile } = await import("./services/dataService");
+          const userData = await getOrCreateManagerProfile(u);
 
-          if (userDoc.exists()) {
-            if (userDoc.data().role === 'manager') {
+          if (userData.role === 'manager') {
+            if (userData.status === 'Approved') {
               setHasProfile(true);
               setUser(u);
+
+              // Handle pending property registration
+              const pendingProperty = localStorage.getItem('pendingPropertyRegistration');
+              if (pendingProperty) {
+                try {
+                  const propertyData = JSON.parse(pendingProperty);
+                  const { addProperty } = await import("./services/dataService");
+                  await addProperty({ ...propertyData, ownerId: u.uid });
+                  localStorage.removeItem('pendingPropertyRegistration');
+                  setInitialTab('properties');
+                } catch (err) {
+                  console.error("Error saving pending property:", err);
+                }
+              }
             } else {
               setHasProfile(false);
-              setError("Access Denied: This portal is for Managers only. Your account has a 'User' role.");
+              setError("Account Pending Approval: Your account is currently under review.");
             }
           } else {
             setHasProfile(false);
-            setError("Profile not found. Please register as a Manager.");
+            setError("Manager account not found. Please register as a Manager to access this portal.");
           }
         } catch (err) {
           console.error("Profile check error:", err);
@@ -84,10 +124,17 @@ function App() {
           exit={{ opacity: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <Dashboard onLogout={handleLogout} user={user} />
+          <Dashboard onLogout={handleLogout} user={user} initialTab={initialTab} />
         </motion.div>
       ) : showLanding ? (
-        <LandingPage key="landing" onExplore={() => setShowLanding(false)} />
+        <LandingPage
+          key="landing"
+          onExplore={(tab) => {
+            const destination = typeof tab === 'string' ? tab : 'dashboard';
+            setInitialTab(destination);
+            setShowLanding(false);
+          }}
+        />
       ) : (
         <motion.div
           key="auth"

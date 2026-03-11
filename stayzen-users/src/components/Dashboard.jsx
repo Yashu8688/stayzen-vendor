@@ -8,6 +8,7 @@ import {
     ArrowRight,
     Heart,
     ShieldCheck,
+    Users
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { subscribeToPosts, toggleFavorite, subscribeToUserFavorites } from '../services/dataService';
@@ -25,10 +26,7 @@ const Dashboard = () => {
     const [selectedProperty, setSelectedProperty] = useState(null);
 
     useEffect(() => {
-        const unsubscribeAuth = auth.onAuthStateChanged((u) => {
-            setUser(u);
-        });
-
+        const unsubscribeAuth = auth.onAuthStateChanged((u) => setUser(u));
         const handleOpenProperty = (e) => setSelectedProperty(e.detail);
         window.addEventListener('openProperty', handleOpenProperty);
         return () => {
@@ -40,7 +38,6 @@ const Dashboard = () => {
     useEffect(() => {
         const unsubscribe = subscribeToPosts((data) => {
             if (data && data.length > 0) {
-                // Shuffle data to make the dashboard feel dynamic
                 const shuffled = [...data].sort(() => 0.5 - Math.random());
                 setProperties(shuffled.slice(0, 4));
             } else {
@@ -65,10 +62,7 @@ const Dashboard = () => {
 
     const handleToggleFavorite = async (e, prop) => {
         e.stopPropagation();
-        if (!auth.currentUser) {
-            alert("Please sign in to save favorites.");
-            return;
-        }
+        if (!auth.currentUser) return alert("Please sign in to save favorites.");
         try {
             await toggleFavorite(auth.currentUser.uid, prop);
         } catch (error) {
@@ -76,92 +70,83 @@ const Dashboard = () => {
         }
     };
 
-    const QuickAction = ({ icon: Icon, label, desc, path, color }) => (
-        <motion.div
-            className="intel-quick-action"
-            whileHover={{ y: -5 }}
-            onClick={() => navigate(path)}
-        >
-            <div className="action-icon-vial" style={{ color: color, background: `${color}15` }}>
-                <Icon size={24} />
-            </div>
-            <div className="action-info">
-                <h3>{label}</h3>
-                <p>{desc}</p>
-            </div>
-            <div className="action-arrow">
-                <ArrowRight size={16} />
-            </div>
-        </motion.div>
-    );
-
     return (
-        <div className="intel-home-dashboard">
-            {/* Welcome Header */}
-            <header className="intel-welcome-header">
-                <div className="welcome-text">
+        <div className="hq-dashboard-container fade-up">
+            {/* Premium Hero Section */}
+            <header className="hq-hero-banner">
+                <div className="hero-content">
                     <motion.div
-                        className="intel-status-pill"
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
+                        className="hq-status-tag"
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
                     >
                         <ShieldCheck size={14} />
-                        <span>Verified Eco-system Member</span>
+                        <span>StayZen Gold Member</span>
                     </motion.div>
-                    <h1>Welcome, <span className="gradient-glow">{user?.displayName?.split(' ')[0] || 'Guest'}</span></h1>
-                    <p>{user ? 'Your residential command center is active. All systems nominal.' : 'Explore the StayZen eco-system and find your next home.'}</p>
+                    <h1 className="heading-l">
+                        Find your <span className="gradient-glow">Zen</span>,<br />
+                        {user?.displayName?.split(' ')[0] || 'Guest'}
+                    </h1>
+                    <p className="hero-subtitle">Your personalized residential management center is ready.</p>
                 </div>
-                <div className="date-vial">
-                    <CalendarClock size={16} />
+                <div className="hero-date glass-card">
+                    <CalendarClock size={18} />
                     <span>{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}</span>
                 </div>
             </header>
 
-            {/* Quick Actions Grid */}
-            <section className="intel-actions-grid">
+            {/* Premium Actions Grid */}
+            <section className="hq-actions-grid">
                 <QuickAction
                     icon={Compass}
                     label="Explore Spaces"
-                    desc="Discover new properties with AI matching."
+                    desc="Search verified properties near you"
                     path="/"
                     color="#1aa79c"
+                    navigate={navigate}
                 />
                 <QuickAction
                     icon={CalendarClock}
                     label="My Stays"
-                    desc="Track active bookings and lease terms."
+                    desc="Track your active bookings & terms"
                     path="/bookings"
                     color="#3b82f6"
+                    navigate={navigate}
                 />
                 <QuickAction
                     icon={Heart}
-                    label="My Favorites"
-                    desc="View your saved and shortlisted properties."
+                    label="Favorites"
+                    desc="Your shortlisted premium homes"
                     path="/favorites"
                     color="#ec4899"
+                    navigate={navigate}
                 />
                 <QuickAction
-                    icon={MessageCircle}
-                    label="Support"
-                    desc="24/7 assistance and help center."
-                    path="/help"
-                    color="#8b5cf6"
+                    icon={Users}
+                    label="Roommate Matching"
+                    desc="Connect with verified residents"
+                    path="/roommates"
+                    color="#f59e0b"
+                    navigate={navigate}
                 />
             </section>
 
-            {/* Recommended Feed */}
-            <section className="intel-rec-section">
+            {/* Recommendations Section */}
+            <section className="hq-recommendations">
                 <div className="section-header">
-                    <h2>Recommended for You</h2>
-                    <button className="view-all-btn" onClick={() => navigate('/')}>
-                        View All <ArrowRight size={14} />
+                    <div>
+                        <h2 className="heading-m">Recommended for You</h2>
+                        <p className="text-s">Based on your preferences and recent searches</p>
+                    </div>
+                    <button className="view-link" onClick={() => navigate('/')}>
+                        View All <ArrowRight size={16} />
                     </button>
                 </div>
 
-                <div className="ex-grid-view dashboard-row">
+                <div className="hq-properties-row">
                     {loading ? (
                         Array(4).fill(0).map((_, i) => (
-                            <div key={i} className="ex-skeleton card"></div>
+                            <div key={i} className="skeleton-card glass-card"></div>
                         ))
                     ) : (
                         properties.map((prop) => (
@@ -188,5 +173,24 @@ const Dashboard = () => {
         </div>
     );
 };
+
+const QuickAction = ({ icon: Icon, label, desc, path, color, navigate }) => (
+    <motion.div
+        className="hq-action-card glass-card card-hover"
+        whileHover={{ y: -5 }}
+        onClick={() => navigate(path)}
+    >
+        <div className="action-icon" style={{ color: color, background: `${color}15` }}>
+            <Icon size={24} />
+        </div>
+        <div className="action-info">
+            <h3>{label}</h3>
+            <p>{desc}</p>
+        </div>
+        <div className="action-next">
+            <ArrowRight size={18} />
+        </div>
+    </motion.div>
+);
 
 export default Dashboard;

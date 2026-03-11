@@ -119,6 +119,7 @@ export default function RentersPage({ userId }) {
     const [rentAmount, setRentAmount] = React.useState(''); // New State for Rent
     const [paymentType, setPaymentType] = React.useState('Online');
     const [isSubmitting, setIsSubmitting] = React.useState(false);
+    const [addPaymentAmount, setAddPaymentAmount] = React.useState(''); // New: Amount to add
 
     const openPaymentModal = (renter) => {
         setSelectedRenter(renter);
@@ -126,6 +127,7 @@ export default function RentersPage({ userId }) {
         setAmountToPay(renter.paidAmount);
         setRentAmount(renter.rentAmount || 0);
         setPaymentType(renter.paymentType || 'Online');
+        setAddPaymentAmount(''); // Reset add amount
         setIsPaymentModalOpen(true);
     };
 
@@ -133,9 +135,11 @@ export default function RentersPage({ userId }) {
         if (!selectedRenter || isSubmitting) return;
         setIsSubmitting(true);
         try {
+            // Calculate new total paid = current paid + added amount
+            const newPaidAmount = Number(amountToPay) + Number(addPaymentAmount || 0);
             await processRenterPayment(
                 selectedRenter,
-                Number(amountToPay),
+                newPaidAmount,
                 Number(rentAmount),
                 paymentType,
                 userId
@@ -205,10 +209,11 @@ export default function RentersPage({ userId }) {
 
             {/* Mobile FAB */}
             <button
-                className="mobile-fab mobile-show"
+                className="mobile-fab mobile-show rn-fab-with-text"
                 onClick={() => setIsAddModalOpen(true)}
             >
-                <IoAddOutline size={24} />
+                <IoAddOutline size={20} />
+                <span>Add New Renter</span>
             </button>
 
             {/* Stats Summary */}
@@ -282,7 +287,7 @@ export default function RentersPage({ userId }) {
                         <thead>
                             <tr>
                                 <th>Renter</th>
-                                <th>Property & Unit</th>
+                                <th>Property & Room</th>
                                 <th>Monthly Rent</th>
                                 <th>Paid</th>
                                 <th>Balance</th>
@@ -305,10 +310,10 @@ export default function RentersPage({ userId }) {
                                                 </div>
                                             </div>
                                         </td>
-                                        <td data-label="Property & Unit">
+                                        <td data-label="Property & Room">
                                             <div className="rn-property-info">
-                                                <div style={{ fontWeight: '700', color: '#334155' }}>{renter.property}</div>
-                                                <span className="rn-unit-box">{renter.unit || 'General'}</span>
+                                                <div style={{ fontWeight: '700', color: '#334155' }} className="rn-property-name">{renter.property}</div>
+                                                <span className="rn-unit-box">{renter.unit || 'Not assigned'}</span>
                                             </div>
                                         </td>
                                         <td data-label="Rent">
@@ -414,7 +419,7 @@ export default function RentersPage({ userId }) {
                                 </div>
 
                                 <div className="rn-form-group">
-                                    <label>UNIT NUMBER / ROOM</label>
+                                    <label>ROOM NUMBER</label>
                                     <input
                                         type="text"
                                         className="rn-form-input"
@@ -464,73 +469,104 @@ export default function RentersPage({ userId }) {
                             </button>
                         </div>
 
-                        <div className="payment-summary-card">
-                            <div className="summary-item">
-                                <span>Monthly Rent</span>
-                                <strong>₹{Number(rentAmount).toLocaleString()}</strong>
-                            </div>
-                            <div className="summary-divider"></div>
-                            <div className="summary-item">
-                                <span>Current Dues</span>
-                                <strong style={{ color: (Number(rentAmount) - Number(amountToPay)) > 0 ? '#ef4444' : '#10b981' }}>
-                                    ₹{Math.max(0, Number(rentAmount) - Number(amountToPay)).toLocaleString()}
-                                </strong>
-                            </div>
-                        </div>
-
-                        <div className="rn-form-grid">
-                            <div className="rn-form-group">
-                                <label>Adjust Monthly Rent (₹)</label>
-                                <div className="input-with-icon">
-                                    <input
-                                        type="number"
-                                        className="rn-form-input"
-                                        value={rentAmount || ''}
-                                        onChange={(e) => setRentAmount(e.target.value)}
-                                        placeholder="0.00"
-                                    />
+                        <div className="rn-modal-inner">
+                            <div className="payment-summary-grid">
+                                <div className="summary-card">
+                                    <span className="summary-label">Total Rent</span>
+                                    <strong className="summary-value">₹{Number(rentAmount).toLocaleString()}</strong>
+                                </div>
+                                <div className="summary-card">
+                                    <span className="summary-label">Already Paid</span>
+                                    <strong className="summary-value paid">₹{Number(amountToPay).toLocaleString()}</strong>
+                                </div>
+                                <div className="summary-card">
+                                    <span className="summary-label">+ Add Payment</span>
+                                    <strong className="summary-value input-preview">₹{Number(addPaymentAmount || 0).toLocaleString()}</strong>
+                                </div>
+                                <div className="summary-card highlight-card">
+                                    <span className="summary-label">New Total Paid</span>
+                                    <strong className="summary-value updated">₹{(Number(amountToPay) + Number(addPaymentAmount || 0)).toLocaleString()}</strong>
                                 </div>
                             </div>
 
-                            <div className="rn-form-group">
-                                <label>Total Paid to Date (₹)</label>
-                                <div className="input-with-icon">
-                                    <input
-                                        type="number"
-                                        className="rn-form-input highlight"
-                                        value={amountToPay}
-                                        onChange={(e) => setAmountToPay(e.target.value)}
-                                        placeholder="0.00"
-                                    />
+                            <div className="payment-balance-card">
+                                <div className="balance-left">
+                                    <span>Remaining Balance</span>
+                                    <strong style={{ color: (Number(rentAmount) - (Number(amountToPay) + Number(addPaymentAmount || 0))) > 0 ? '#ef4444' : '#10b981', fontSize: '18px' }}>
+                                        ₹{Math.max(0, Number(rentAmount) - (Number(amountToPay) + Number(addPaymentAmount || 0))).toLocaleString()}
+                                    </strong>
                                 </div>
-                                <p className="input-hint">Update this value when receiving cash/offline payments.</p>
+                                <div className="balance-progress">
+                                    <div className="progress-bar">
+                                        <div
+                                            className="progress-fill"
+                                            style={{
+                                                width: `${Math.min(100, ((Number(amountToPay) + Number(addPaymentAmount || 0)) / Number(rentAmount)) * 100)}%`
+                                            }}
+                                        ></div>
+                                    </div>
+                                    <span className="progress-text">
+                                        {Number(rentAmount) > 0 ? Math.round(((Number(amountToPay) + Number(addPaymentAmount || 0)) / Number(rentAmount)) * 100) : 0}% Complete
+                                    </span>
+                                </div>
                             </div>
 
-                            <div className="rn-form-group">
-                                <label>Payment Reference</label>
-                                <select
-                                    className="rn-form-select"
-                                    value={paymentType}
-                                    onChange={(e) => setPaymentType(e.target.value)}
-                                >
-                                    <option value="Online">Online / UPI</option>
-                                    <option value="Cash">Cash Payment</option>
-                                    <option value="Bank Transfer">Bank Transfer</option>
-                                    <option value="Offline">Other Offline</option>
-                                </select>
+                            <div className="rn-form-grid">
+                                <div className="rn-form-group">
+                                    <label>Add Payment Amount (₹)</label>
+                                    <div className="input-with-icon">
+                                        <input
+                                            type="number"
+                                            className="rn-form-input highlight"
+                                            value={addPaymentAmount}
+                                            onChange={(e) => setAddPaymentAmount(e.target.value)}
+                                            placeholder="Enter amount to add (e.g., 5000)"
+                                            min="0"
+                                        />
+                                    </div>
+                                    <p className="input-hint">Enter the amount received now. It will be added to the already paid amount.</p>
+                                </div>
+
+                                <div className="rn-form-group">
+                                    <label>Payment Method</label>
+                                    <select
+                                        className="rn-form-select"
+                                        value={paymentType}
+                                        onChange={(e) => setPaymentType(e.target.value)}
+                                    >
+                                        <option value="Online">Online / UPI</option>
+                                        <option value="Cash">Cash Payment</option>
+                                        <option value="Bank Transfer">Bank Transfer</option>
+                                        <option value="Offline">Other Offline</option>
+                                    </select>
+                                </div>
+
+                                <div className="rn-form-group">
+                                    <label>Adjust Monthly Rent (₹)</label>
+                                    <div className="input-with-icon">
+                                        <input
+                                            type="number"
+                                            className="rn-form-input"
+                                            value={rentAmount || ''}
+                                            onChange={(e) => setRentAmount(e.target.value)}
+                                            placeholder="Monthly rent amount"
+                                        />
+                                    </div>
+                                    <p className="input-hint">Update this only if monthly rent has changed.</p>
+                                </div>
                             </div>
                         </div>
 
                         <div className="rn-modal-footer">
                             <button className="rn-secondary-btn" onClick={() => setIsPaymentModalOpen(false)} disabled={isSubmitting}>
-                                Dismiss
+                                Cancel
                             </button>
                             <button
                                 className={`rn-save-btn ${isSubmitting ? 'loading' : ''}`}
                                 onClick={handleUpdatePayment}
-                                disabled={isSubmitting}
+                                disabled={isSubmitting || !addPaymentAmount}
                             >
-                                {isSubmitting ? 'Syncing...' : 'Save & Update Ledger'}
+                                {isSubmitting ? 'Processing...' : `Add ₹${Number(addPaymentAmount || 0).toLocaleString()} & Save`}
                             </button>
                         </div>
                     </div>
@@ -553,29 +589,37 @@ export default function RentersPage({ userId }) {
                             </button>
                         </div>
 
-                        <div className="payment-summary-card" style={{ marginBottom: '20px' }}>
-                            <div className="summary-item">
-                                <span>Monthly Rent</span>
-                                <strong>₹{Number(selectedRenterForHistory.rentAmount).toLocaleString()}</strong>
-                            </div>
-                            <div className="summary-divider"></div>
-                            <div className="summary-item">
-                                <span>Advance Paid</span>
-                                <strong style={{ color: '#10b981' }}>₹{Number(selectedRenterForHistory.deposit || 0).toLocaleString()}</strong>
-                            </div>
-                            <div className="summary-divider"></div>
-                            <div className="summary-item">
-                                <span>Total Paid</span>
-                                <strong style={{ color: '#10b981' }}>₹{Number(selectedRenterForHistory.paidAmount).toLocaleString()}</strong>
-                            </div>
-                            <div className="summary-divider"></div>
-                            <div className="summary-item">
-                                <span>Balance</span>
-                                <strong style={{ color: (selectedRenterForHistory.rentAmount - selectedRenterForHistory.paidAmount) > 0 ? '#ef4444' : '#10b981' }}>
-                                    ₹{Math.max(0, Number(selectedRenterForHistory.rentAmount) - Number(selectedRenterForHistory.paidAmount)).toLocaleString()}
-                                </strong>
-                            </div>
+                        <div style={{
+                            background: '#f8fafc',
+                            borderRadius: '14px',
+                            border: '1px solid #e2e8f0',
+                            overflow: 'hidden',
+                            marginBottom: '20px'
+                        }}>
+                            {[
+                                { label: 'Monthly Rent', value: `₹${Number(selectedRenterForHistory.rentAmount).toLocaleString()}`, color: '#334155' },
+                                { label: 'Advance Paid', value: `₹${Number(selectedRenterForHistory.deposit || 0).toLocaleString()}`, color: '#10b981' },
+                                { label: 'Total Paid', value: `₹${Number(selectedRenterForHistory.paidAmount).toLocaleString()}`, color: '#10b981' },
+                                {
+                                    label: 'Balance',
+                                    value: `₹${Math.max(0, Number(selectedRenterForHistory.rentAmount) - Number(selectedRenterForHistory.paidAmount)).toLocaleString()}`,
+                                    color: (selectedRenterForHistory.rentAmount - selectedRenterForHistory.paidAmount) > 0 ? '#ef4444' : '#10b981'
+                                }
+                            ].map((row, i, arr) => (
+                                <div key={row.label} style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
+                                    padding: '14px 20px',
+                                    borderBottom: i < arr.length - 1 ? '1px solid #e2e8f0' : 'none',
+                                    background: i === arr.length - 1 ? '#f1f5f9' : 'transparent'
+                                }}>
+                                    <span style={{ fontSize: '13px', color: '#64748b', fontWeight: '500' }}>{row.label}</span>
+                                    <strong style={{ fontSize: '15px', color: row.color, fontWeight: '700' }}>{row.value}</strong>
+                                </div>
+                            ))}
                         </div>
+
 
                         <div style={{ marginBottom: '15px' }}>
                             <h4 style={{ fontSize: '14px', fontWeight: '600', marginBottom: '10px' }}>Transaction History</h4>

@@ -1,237 +1,243 @@
+/* Clean & Professional Help Center Styling */
 .intel-help-view {
-    max-width: 1200px;
+    max-width: 1100px;
     margin: 0 auto;
-    padding-bottom: 60px;
+    padding: 40px 20px 80px;
 }
 
 .intel-help-header {
     text-align: center;
     margin-bottom: 60px;
-    padding-top: 40px;
-}
-
-.header-meta {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 24px;
-}
-
-.meta-pill {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 14px;
-    background: #f1f8f7;
-    border: 1px solid rgba(26, 167, 156, 0.2);
-    border-radius: 20px;
-    color: var(--primary);
-    font-size: 11px;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 1px;
 }
 
 .intel-help-title {
-    font-size: 48px;
-    font-weight: 950;
+    font-size: 3rem;
+    font-weight: 800;
     color: #0f172a;
-    letter-spacing: -2px;
     margin-bottom: 16px;
-    line-height: 1.1;
+    letter-spacing: -2px;
 }
 
 .intel-help-subtitle {
-    font-size: 16px;
     color: #64748b;
-    max-width: 600px;
-    margin: 0 auto 40px;
-    line-height: 1.6;
+    font-size: 1.1rem;
+    margin-bottom: 40px;
 }
 
 .intel-help-search-box {
     max-width: 600px;
     margin: 0 auto;
-    background: #fff;
-    border: 1px solid var(--border-color);
-    border-radius: 20px;
-    padding: 10px 24px;
     display: flex;
     align-items: center;
-    gap: 16px;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.04);
+    gap: 12px;
+    background: white;
+    padding: 12px 24px;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
 }
 
 .intel-help-search-box input {
-    flex: 1;
-    height: 44px;
     border: none;
-    background: none;
-    font-size: 15px;
-    font-weight: 600;
-    color: #0f172a;
     outline: none;
+    width: 100%;
+    font-size: 1rem;
+    font-weight: 500;
 }
 
 .intel-help-grid {
     display: grid;
-    grid-template-columns: 1fr 340px;
+    grid-template-columns: 1fr 360px;
     gap: 40px;
 }
 
+/* FAQ Section */
 .intel-faq-manifest {
-    background: #fff;
-    border-radius: 32px;
-    border: 1px solid var(--border-color);
+    background: white;
     padding: 32px;
+    border-radius: 24px;
+    border: 1px solid #e2e8f0;
 }
 
 .manifest-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 32px;
+    margin-bottom: 24px;
+}
+
+.manifest-header h2 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #0f172a;
 }
 
 .faq-list {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 16px;
 }
 
 .intel-faq-item {
+    border: 1px solid #f1f5f9;
+    border-radius: 12px;
     background: #f8fafc;
-    border: 1px solid var(--border-color);
-    border-radius: 16px;
-    overflow: hidden;
     cursor: pointer;
-    transition: all 0.3s;
+    transition: all 0.2s;
 }
 
 .intel-faq-item:hover {
-    background: #fff;
-    border-color: var(--primary);
+    border-color: #1aa79c;
+    background: white;
 }
 
 .faq-trigger {
-    padding: 20px 24px;
+    padding: 18px 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-}
-
-.faq-q {
-    font-size: 15px;
-    font-weight: 800;
-    color: #334155;
-}
-
-.faq-icon-vial {
-    width: 28px;
-    height: 28px;
-    background: #f1f5f9;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #64748b;
-    transition: all 0.3s;
-}
-
-.intel-faq-item.open .faq-icon-vial {
-    background: var(--primary);
-    color: #fff;
+    font-weight: 700;
+    color: #1e293b;
 }
 
 .faq-inner {
-    padding: 0 24px 24px;
-}
-
-.faq-inner p {
-    font-size: 14px;
+    padding: 0 20px 20px;
     color: #64748b;
     line-height: 1.6;
 }
 
+/* Sidebar Styles - NEAT ALIGNMENT */
 .intel-contact-sidebar {
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: 20px;
 }
 
-.intel-contact-card {
-    background: #fff;
-    border: 1px solid var(--border-color);
-    border-radius: 24px;
-    padding: 24px;
-    position: relative;
-}
-
+/* Primary Contact Card */
 .intel-contact-card.primary {
     background: #0f172a;
-    border: none;
-    color: #fff;
+    padding: 30px;
+    border-radius: 24px;
+    color: white;
+    position: relative;
+    overflow: hidden;
 }
 
-.card-top {
+.intel-contact-card.primary h3 {
+    color: white;
+    font-size: 1.4rem;
+    font-weight: 800;
+    margin-bottom: 12px;
+}
+
+.intel-contact-card.primary p {
+    color: #94a3b8;
+    font-size: 0.95rem;
+    margin-bottom: 24px;
+    line-height: 1.5;
+}
+
+/* Standard Contact Item */
+.intel-contact-group {
     display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 20px;
+    flex-direction: column;
+    gap: 16px;
 }
 
-.icon-vial {
+.intel-contact-item {
+    background: white;
+    padding: 20px;
+    border-radius: 20px;
+    border: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    transition: all 0.3s;
+}
+
+.intel-contact-item:hover {
+    transform: translateY(-2px);
+    border-color: #1aa79c;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+}
+
+.item-icon {
     width: 48px;
     height: 48px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 14px;
+    background: #f0fdfa;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--primary);
+    color: #1aa79c;
+    flex-shrink: 0;
 }
 
-.status-dot {
-    width: 10px;
-    height: 10px;
-    background: var(--success);
-    border-radius: 50%;
-    box-shadow: 0 0 10px var(--success);
+.item-info {
+    display: flex;
+    flex-direction: column;
 }
 
-.intel-contact-card h3 {
-    font-size: 18px;
-    font-weight: 900;
-    margin-bottom: 8px;
+.item-info label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
 }
 
+.item-info a {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #0f172a;
+    text-decoration: none;
+}
+
+/* Protection Box */
+.intel-protection-box {
+    background: #f0fdfa;
+    padding: 24px;
+    border-radius: 20px;
+    border: 1px solid rgba(26, 167, 156, 0.1);
+}
+
+.protection-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #1aa79c;
+    font-weight: 800;
+    margin-bottom: 10px;
+}
+
+.intel-protection-box p {
+    font-size: 0.9rem;
+    color: #334155;
+    line-height: 1.6;
+}
+
+/* Button Refinement */
 .intel-btn-primary {
-    width: 100%;
-    height: 48px;
-    background: var(--primary);
-    color: #fff;
+    background: #1aa79c;
+    color: white;
     border: none;
-    border-radius: 14px;
+    padding: 14px 24px;
+    border-radius: 12px;
+    font-weight: 700;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 10px;
-    font-weight: 800;
-    font-size: 14px;
     cursor: pointer;
-    transition: all 0.3s;
+    width: 100%;
+    transition: all 0.2s;
 }
 
 .intel-btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 20px rgba(26, 167, 156, 0.3);
+    background: #158f86;
+    filter: brightness(1.1);
 }
 
-@media(max-width:1200px) {
+@media (max-width: 900px) {
     .intel-help-grid {
         grid-template-columns: 1fr;
-    }
-
-    .intel-help-title {
-        font-size: 32px;
     }
 }
