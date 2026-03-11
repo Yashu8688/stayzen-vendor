@@ -400,3 +400,371 @@
         transform: rotate(360deg);
     }
 }
+
+/* ===== RESPONSIVE DESIGN ===== */
+
+/* TABLET (768px) */
+@media (max-width: 768px) {
+    .bookings-header-wrap {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+
+    .view-title {
+        font-size: 20px;
+    }
+
+    .view-subtitle {
+        font-size: 12px;
+    }
+
+    .header-right {
+        width: 100%;
+        gap: 8px;
+    }
+
+    .export-action-btn {
+        flex: 1;
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+
+    .primary-action-btn {
+        flex: 1;
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+
+    .bookings-controls-panel {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 12px;
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+
+    .search-pill {
+        width: 100%;
+    }
+
+    .filter-group {
+        width: 100%;
+        overflow-x: auto;
+        gap: 4px;
+    }
+
+    .filter-pill {
+        padding: 6px 12px;
+        font-size: 11px;
+        white-space: nowrap;
+    }
+
+    .bookings-table-container {
+        border-radius: 16px;
+        overflow-x: auto;
+    }
+
+    .bookings-data-table {
+        font-size: 12px;
+    }
+
+    .bookings-data-table th {
+        padding: 12px 14px;
+    }
+
+    .th-cell {
+        font-size: 10px;
+    }
+
+    .booking-tr td {
+        padding: 12px 14px;
+    }
+
+    .id-vial {
+        font-size: 11px;
+    }
+
+    .asset-vial {
+        gap: 8px;
+    }
+
+    .asset-icon {
+        width: 28px;
+        height: 28px;
+    }
+
+    .asset-name {
+        font-size: 12px;
+    }
+
+    .asset-loc {
+        font-size: 10px;
+    }
+
+    .user-main {
+        font-size: 12px;
+    }
+
+    .user-sub {
+        font-size: 10px;
+    }
+
+    .stay-type {
+        font-size: 11px;
+    }
+
+    .stay-meta {
+        font-size: 9px;
+    }
+
+    .amount-wrap .val {
+        font-size: 14px;
+    }
+
+    .status-vial {
+        padding: 4px 10px;
+        font-size: 10px;
+    }
+
+    .empty-state-view {
+        padding: 40px 20px;
+    }
+
+    .empty-state-view h3 {
+        font-size: 16px;
+    }
+
+    .empty-state-view p {
+        font-size: 13px;
+    }
+}
+
+/* MOBILE (480px) */
+@media (max-width: 480px) {
+    .bookings-view {
+        animation: hqFadeIn 0.5s ease-out;
+    }
+
+    .bookings-header-wrap {
+        flex-direction: column;
+        align-items: stretch;
+        margin-bottom: 12px;
+        gap: 10px;
+    }
+
+    .view-title {
+        font-size: 18px;
+        margin: 0;
+    }
+
+    .view-subtitle {
+        font-size: 11px;
+        margin-top: 2px;
+    }
+
+    .header-right {
+        flex-direction: column;
+        width: 100%;
+        gap: 6px;
+    }
+
+    .export-action-btn {
+        padding: 8px 10px;
+        font-size: 11px;
+        border-radius: 10px;
+        gap: 6px;
+    }
+
+    .primary-action-btn {
+        padding: 8px 10px;
+        font-size: 11px;
+        border-radius: 10px;
+    }
+
+    .bookings-controls-panel {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 10px;
+        gap: 10px;
+        margin-bottom: 12px;
+        border-radius: 14px;
+    }
+
+    .search-pill {
+        width: calc(100% - 4px);
+        border-radius: 10px;
+        padding: 0 10px;
+    }
+
+    .search-pill input {
+        padding: 8px 6px;
+        font-size: 12px;
+    }
+
+    .filter-group {
+        width: 100%;
+        overflow-x: auto;
+        gap: 3px;
+        padding-bottom: 2px;
+    }
+
+    .filter-pill {
+        padding: 5px 10px;
+        font-size: 10px;
+        border-radius: 8px;
+        white-space: nowrap;
+    }
+
+    .bookings-table-container {
+        border-radius: 12px;
+        border: 1px solid var(--border-color);
+    }
+
+    .bookings-data-table {
+        font-size: 11px;
+    }
+
+    .bookings-data-table th {
+        padding: 10px 10px;
+        font-size: 9px;
+        background: #f8fafc;
+    }
+
+    .th-cell {
+        font-size: 9px;
+        gap: 4px;
+    }
+
+    .booking-tr {
+        display: flex;
+        flex-direction: column;
+        border-bottom: 1px solid #f1f5f9;
+        margin-bottom: 8px;
+    }
+
+    .booking-tr td {
+        padding: 6px 10px;
+        border: none;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 11px;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .booking-tr td:before {
+        content: attr(data-label);
+        font-weight: 700;
+        color: var(--text-muted);
+        font-size: 9px;
+        text-transform: uppercase;
+    }
+
+    .id-vial {
+        font-size: 10px;
+        padding: 2px 6px;
+    }
+
+    .asset-vial {
+        gap: 6px;
+    }
+
+    .asset-icon {
+        width: 24px;
+        height: 24px;
+        border-radius: 6px;
+    }
+
+    .asset-name {
+        font-size: 11px;
+    }
+
+    .asset-loc {
+        font-size: 9px;
+    }
+
+    .user-vial {
+        gap: 2px;
+    }
+
+    .user-main {
+        font-size: 11px;
+    }
+
+    .user-sub {
+        font-size: 9px;
+    }
+
+    .stay-type {
+        font-size: 10px;
+        padding: 2px 6px;
+    }
+
+    .stay-meta {
+        font-size: 8px;
+        margin-top: 2px;
+    }
+
+    .amount-wrap {
+        gap: 2px;
+    }
+
+    .amount-wrap .currency {
+        font-size: 10px;
+    }
+
+    .amount-wrap .val {
+        font-size: 13px;
+    }
+
+    .status-vial {
+        padding: 3px 8px;
+        font-size: 9px;
+        border-radius: 6px;
+    }
+
+    .row-action-btn {
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
+    }
+
+    .empty-state-view {
+        padding: 30px 16px;
+    }
+
+    .empty-icon {
+        width: 48px;
+        height: 48px;
+        margin-bottom: 16px;
+    }
+
+    .empty-state-view h3 {
+        font-size: 14px;
+        margin-bottom: 6px;
+    }
+
+    .empty-state-view p {
+        font-size: 12px;
+        margin-bottom: 16px;
+    }
+
+    .reset-view-btn {
+        padding: 8px 14px;
+        font-size: 11px;
+        border-radius: 10px;
+    }
+
+    .loading-state-view {
+        padding: 60px 20px;
+        gap: 12px;
+    }
+
+    .vial-spinner {
+        width: 36px;
+        height: 36px;
+        border-width: 2px;
+    }
+}

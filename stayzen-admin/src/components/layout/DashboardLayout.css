@@ -1,4 +1,8 @@
 /* Dashboard Layout Styles - DashboardLayout.css */
+:root {
+    --header-height: 64px;
+}
+
 .dashboard-layout {
     display: flex;
     flex-direction: column;
@@ -17,6 +21,27 @@
     position: sticky;
     top: 0;
     z-index: 1001;
+    gap: 16px;
+}
+
+.mobile-menu-toggle {
+    display: none;
+    background: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    color: var(--primary);
+    transition: all 0.2s;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.mobile-menu-toggle:active {
+    transform: scale(0.95);
+    background: #f8fafc;
 }
 
 .topbar-left {
@@ -364,4 +389,218 @@
     padding: 32px 44px;
     background: var(--bg-main);
     overflow-y: auto;
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+
+/* TABLET (768px) */
+@media (max-width: 768px) {
+    .topbar {
+        padding: 0 16px;
+        gap: 12px;
+    }
+
+    .mobile-menu-toggle {
+        display: flex;
+    }
+
+    .brand-box {
+        gap: 8px;
+    }
+
+    .brand-logo {
+        height: 36px;
+    }
+
+    .brand-text {
+        font-size: 22px;
+        letter-spacing: -0.8px;
+    }
+
+    .header-divider {
+        margin: 0 12px;
+        height: 20px;
+    }
+
+    .title-section {
+        gap: 10px;
+    }
+
+    .title-text {
+        font-size: 14px;
+        display: none;
+    }
+
+    .date-badge {
+        padding: 4px 8px;
+        font-size: 11px;
+        border-radius: 8px;
+    }
+
+    .topbar-center {
+        display: none;
+    }
+
+    .topbar-right {
+        gap: 12px;
+    }
+
+    .icon-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+    }
+
+    .profile-pill {
+        padding: 4px;
+        padding-right: 8px;
+        gap: 8px;
+    }
+
+    .avatar {
+        width: 30px;
+        height: 30px;
+        font-size: 12px;
+    }
+
+    .user-name {
+        font-size: 12px;
+    }
+
+    .user-role {
+        font-size: 10px;
+    }
+
+    .notif-dropdown {
+        width: 280px;
+    }
+
+    .user-dropdown {
+        width: 180px;
+    }
+
+    .main-container {
+        flex-direction: row;
+    }
+
+    .page-content {
+        padding: 24px 16px;
+    }
+}
+
+/* MOBILE (480px) */
+@media (max-width: 480px) {
+    :root {
+        --header-height: 56px;
+    }
+
+    .topbar {
+        height: 56px;
+        padding: 0 12px;
+        gap: 8px;
+    }
+
+    .mobile-menu-toggle {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+    }
+
+    .brand-box {
+        gap: 6px;
+    }
+
+    .brand-logo {
+        height: 28px;
+    }
+
+    .brand-text {
+        font-size: 18px;
+        letter-spacing: -0.6px;
+    }
+
+    .header-divider {
+        width: 1px;
+        height: 16px;
+        margin: 0 8px;
+    }
+
+    .title-section {
+        display: none;
+    }
+
+    .topbar-center {
+        display: none !important;
+    }
+
+    .topbar-right {
+        gap: 6px;
+    }
+
+    .icon-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+    }
+
+    .profile-pill {
+        display: none;
+    }
+
+    .notif-dropdown {
+        width: 240px;
+        right: -16px;
+    }
+
+    .main-container {
+        position: relative;
+    }
+
+    .page-content {
+        padding: 16px 12px;
+    }
+
+    .notif-item {
+        padding: 12px 16px;
+        gap: 10px;
+    }
+
+    .notif-icon-circle {
+        width: 28px;
+        height: 28px;
+    }
+
+    .notif-title {
+        font-size: 13px;
+    }
+
+    .notif-msg {
+        font-size: 12px;
+    }
+
+    .dropdown-item {
+        padding: 8px 12px;
+        font-size: 13px;
+        gap: 10px;
+    }
+}
+
+/* ULTRA MOBILE (360px) */
+@media (max-width: 360px) {
+    .brand-text {
+        font-size: 16px;
+    }
+
+    .brand-logo {
+        height: 24px;
+    }
+
+    .topbar {
+        padding: 0 10px;
+    }
+
+    .mobile-menu-toggle {
+        width: 32px;
+        height: 32px;
+    }
 }

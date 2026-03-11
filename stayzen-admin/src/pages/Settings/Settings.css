@@ -297,3 +297,142 @@
         transform: rotate(360deg);
     }
 }
+
+/* ===== RESPONSIVE DESIGN ===== */
+
+/* TABLET (768px) */
+@media (max-width: 768px) {
+    .settings-container {
+        flex-direction: column;
+        min-height: auto;
+    }
+
+    .settings-sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+        padding: 1rem;
+        flex-direction: row;
+        overflow-x: auto;
+        gap: 0.25rem;
+    }
+
+    .settings-sidebar button {
+        padding: 0.75rem 1rem;
+        font-size: 0.85rem;
+        white-space: nowrap;
+    }
+
+    .settings-content {
+        padding: 1.5rem;
+    }
+
+    .cms-section h3 {
+        font-size: 1.2rem;
+        margin-bottom: 1.2rem;
+    }
+
+    .banner-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+
+    .banner-upload,
+    .banner-item {
+        aspect-ratio: 16/9;
+    }
+
+    .faq-list {
+        gap: 1rem;
+    }
+
+    .faq-item {
+        padding: 1rem;
+    }
+
+    .editor-placeholder textarea {
+        height: 250px;
+    }
+}
+
+/* MOBILE (480px) */
+@media (max-width: 480px) {
+    .settings-page {
+        animation: fadeIn 0.3s ease-out;
+    }
+
+    .settings-container {
+        flex-direction: column;
+        border-radius: 16px;
+    }
+
+    .settings-sidebar {
+        width: 100%;
+        padding: 0.75rem;
+        gap: 0.2rem;
+    }
+
+    .settings-sidebar button {
+        padding: 0.6rem 0.8rem;
+        font-size: 0.8rem;
+        border-radius: 8px;
+    }
+
+    .settings-content {
+        padding: 1rem;
+    }
+
+    .cms-section h3 {
+        font-size: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .banner-grid {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+
+    .upload-placeholder {
+        font-size: 0.8rem;
+    }
+
+    .add-btn {
+        width: 100%;
+        padding: 0.7rem;
+        font-size: 12px;
+    }
+
+    .faq-list {
+        gap: 0.75rem;
+    }
+
+    .faq-item {
+        padding: 0.8rem;
+    }
+
+    .faq-item h4 {
+        font-size: 0.9rem;
+    }
+
+    .editor-placeholder {
+        gap: 0.75rem;
+    }
+
+    .editor-placeholder label {
+        font-size: 0.9rem;
+    }
+
+    .editor-placeholder textarea {
+        height: 200px;
+        padding: 1rem;
+        font-size: 12px;
+        border-radius: 12px;
+    }
+
+    .save-btn {
+        padding: 0.75rem;
+        font-size: 12px;
+        border-radius: 10px;
+        margin-top: 0.75rem;
+    }
+}

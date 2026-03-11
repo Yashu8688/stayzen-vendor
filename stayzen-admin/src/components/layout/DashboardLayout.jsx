@@ -9,7 +9,9 @@ import {
     ChevronDown,
     User,
     Settings,
-    LayoutDashboard
+    LayoutDashboard,
+    Menu,
+    X
 } from 'lucide-react';
 import './DashboardLayout.css';
 import logoImg from '../../assets/logo.jpg';
@@ -21,6 +23,7 @@ const DashboardLayout = ({ onLogout }) => {
     const [notifications, setNotifications] = React.useState([]);
     const [isNotifOpen, setIsNotifOpen] = React.useState(false);
     const [isUserMenuOpen, setIsUserMenuOpen] = React.useState(false);
+    const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
     const notifRef = React.useRef(null);
     const userMenuRef = React.useRef(null);
 
@@ -76,6 +79,9 @@ const DashboardLayout = ({ onLogout }) => {
     return (
         <div className="dashboard-layout">
             <header className="topbar">
+                <button className="mobile-menu-toggle" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
+                    {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
+                </button>
                 <div className="topbar-left">
                     <div className="brand-box">
                         <img src={logoImg} alt="StayZen" className="brand-logo" />
@@ -163,8 +169,8 @@ const DashboardLayout = ({ onLogout }) => {
                         )}
                     </div>
                 </div>
-            </header>
-
+            </header>isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+                <main className="page-content" onClick={() => window.innerWidth < 768 && setIsSidebarOpen(false)}
             <div className="main-container">
                 <Sidebar />
                 <main className="page-content">
